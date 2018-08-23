@@ -15,7 +15,7 @@ class KWalletManagerInputEntry : public QDialog
 	Q_OBJECT
 
 public:
-	explicit KWalletManagerInputEntry(QWidget *parent = 0);
+    KWalletManagerInputEntry(QWidget *parent = 0);
 	~KWalletManagerInputEntry();
 
     KWallet::Wallet::EntryType entryType() const { return type; }

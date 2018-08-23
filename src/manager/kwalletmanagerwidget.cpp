@@ -21,6 +21,8 @@
 #include "kwalletmanagerwidget.h"
 #include "kwalletmanagerwidgetitem.h"
 #include "kwallet_interface.h"
+#include "kwalletmanager_debug.h"
+
 
 #include <kwallet.h>
 #include <qurl.h>
@@ -33,26 +35,11 @@ KWalletManagerWidget::KWalletManagerWidget(QWidget *parent, Qt::WindowFlags flag
 {
     setFaceType(Auto);
     setAcceptDrops(true);
-
-	_createWallet = new KPageWidgetItem(nullptr,i18n("New Wallet"));
-	_createWallet->setIcon(QIcon::fromTheme(QStringLiteral("list-add")));
-	addPage(_createWallet);
-
-    connect(this, &KWalletManagerWidget::currentPageChanged, this, &KWalletManagerWidget::onCurrentPageChanged);
 }
 
 KWalletManagerWidget::~KWalletManagerWidget()
 {
 
-}
-
-void KWalletManagerWidget::onCurrentPageChanged(KPageWidgetItem *current, KPageWidgetItem *before)
-{
-	if(current == _createWallet)
-	{
-		emit pushCreateWallet();
-		this->setCurrentPage(before);
-	}
 }
 
 void KWalletManagerWidget::updateWalletDisplay(QString selectWallet /* = QString() */)
@@ -144,7 +131,7 @@ void KWalletManagerWidget::dragEnterEvent(QDragEnterEvent *e)
 
 void KWalletManagerWidget::dragMoveEvent(QDragMoveEvent *e)
 {
-    qDebug("KWalletManagerWidget::dragMoveEvent");
+    qCDebug(KWALLETMANAGER_LOG) << "KWalletManagerWidget::dragMoveEvent";
 //     KUrl dummy;
 //     QListWidgetItem *dummy2;
 //     if (shouldIgnoreDropEvent(e, &dummy, &dummy2)) {
@@ -156,7 +143,7 @@ void KWalletManagerWidget::dragMoveEvent(QDragMoveEvent *e)
 
 void KWalletManagerWidget::dropEvent(QDropEvent *e)
 {
-    qDebug("KWalletManagerWidget::dropEvent");
+    qCDebug(KWALLETMANAGER_LOG) << "KWalletManagerWidget::dropEvent";
 //     KUrl u;
 //     QListWidgetItem *item;
 //     if (shouldIgnoreDropEvent(e, &u, &item)) {

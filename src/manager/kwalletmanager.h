@@ -19,7 +19,7 @@
 
 #ifndef KWALLETMANAGER_H
 #define KWALLETMANAGER_H
-#include <QtCore/QObject>
+#include <QObject>
 #include <kxmlguiwindow.h>
 #include <QPushButton>
 
@@ -37,7 +37,7 @@ class KWalletManager : public KXmlGuiWindow
 
 public:
     explicit KWalletManager(QWidget *parent = nullptr, const QString &name = QString(), Qt::WindowFlags f = 0);
-    virtual ~KWalletManager();
+    ~KWalletManager() override;
 
     void kwalletdLaunch();
     bool hasUnsavedChanges(const QString& name = QString()) const;
@@ -81,7 +81,6 @@ private:
     bool _shuttingDown;
     KWalletManagerWidget *_managerWidget;
     OrgKdeKWalletInterface *m_kwalletdModule;
-	QPushButton* _pushCreateWallet;
     QList<KXmlGuiWindow *> _windows;
     bool _kwalletdLaunch;
     QAction *_walletsExportAction = nullptr;

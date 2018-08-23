@@ -51,7 +51,7 @@ int main(int argc, char **argv)
                  QStringLiteral(KWALLETMANAGER_VERSION_STRING),
                  i18n("KDE Wallet Management Tool"),
                  KAboutLicense::GPL,
-                 i18n("Copyright ©2013–2017, KWallet Manager authors"),
+                 i18n("Copyright Â©2013â2017, KWallet Manager authors"),
                  QString(),
                  QStringLiteral("http://utils.kde.org/projects/kwalletmanager"));
 
@@ -78,14 +78,13 @@ int main(int argc, char **argv)
     KDBusService dbssvc(KDBusService::Unique);
 
     QCommandLineParser parser;
-    parser.addHelpOption();
-    parser.addVersionOption();
 
+    aboutData.setupCommandLine(&parser);
     parser.addOption(QCommandLineOption(QStringLiteral("show"), i18n("Show window on startup")));
     parser.addOption(QCommandLineOption(QStringLiteral("kwalletd"), i18n("For use by kwalletd only")));
     parser.addOption(QCommandLineOption(QStringLiteral("name"), i18n("A wallet name")));
-
     parser.process(a);
+    aboutData.processCommandLine(&parser);
     KWalletManager wm;
     QObject::connect(&dbssvc, &KDBusService::activateRequested, &wm, &QWidget::activateWindow);
 

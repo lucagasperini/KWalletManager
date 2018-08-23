@@ -32,8 +32,8 @@ class KWalletManagerWidget : public KPageWidget
 {
     Q_OBJECT
 public:
-    explicit KWalletManagerWidget(QWidget *parent = 0, Qt::WindowFlags flags = 0);
-    virtual ~KWalletManagerWidget();
+    explicit KWalletManagerWidget(QWidget *parent = nullptr, Qt::WindowFlags flags = 0);
+    ~KWalletManagerWidget() override;
 
     void updateWalletDisplay(QString selectWallet = QString());
     bool hasWallet(const QString &) const;
@@ -48,18 +48,12 @@ protected:
     void dragMoveEvent(QDragMoveEvent *e) override;
     void dropEvent(QDropEvent *e) override;
 
-signals:
-	void pushCreateWallet();
-
-private Q_SLOTS:
-    void onCurrentPageChanged(KPageWidgetItem *, KPageWidgetItem *);
-
 private:
     bool shouldIgnoreDropEvent(const QDropEvent *e, QUrl *u) const;
 
     typedef QHash<QString, KWalletManagerWidgetItem *> WalletPagesHash;
     WalletPagesHash _walletPages;
-	KPageWidgetItem* _createWallet;
+    static KWalletManagerWidgetItem* newWallet;
 };
 
 #endif // KWALLETMANAGERWIDGET_H
