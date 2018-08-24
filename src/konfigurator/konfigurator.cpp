@@ -219,7 +219,7 @@ void KWalletConfig::load()
         _wcw->_localWalletSelected->setChecked(false);
     }
     _wcw->_accessList->clear();
-    KConfigGroup cfg_editor(_cfg, "WalletEditor");
+    KConfigGroup cfg_editor(KSharedConfig::openConfig(QStringLiteral("kwalletmanager5rc"), KConfig::NoGlobals), "WalletEditor");
     _wcw->_showContent->setChecked(cfg_editor.readEntry("AlwaysShowContents", true));
     KConfigGroup ad(_cfg, "Auto Deny");
     KConfigGroup aa(_cfg, "Auto Allow");
@@ -310,7 +310,7 @@ void KWalletConfig::save()
     }
 
     // FIXME: won't survive a language change
-    KConfigGroup cfg_editor(_cfg, "WalletEditor");
+    KConfigGroup cfg_editor(KSharedConfig::openConfig(QStringLiteral("kwalletmanager5rc"), KConfig::NoGlobals), "WalletEditor");
     cfg_editor.writeEntry("AlwaysShowContents", _wcw->_showContent->isChecked());
     _cfg->deleteGroup("Auto Allow");
     _cfg->deleteGroup("Auto Deny");
