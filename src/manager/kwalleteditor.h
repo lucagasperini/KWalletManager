@@ -128,7 +128,7 @@ private:
     QMenu *_walletSubmenu;
     KTreeWidgetSearchLine *_searchLine;
     static QAction *_alwaysShowContentsAction, *_alwaysHideContentsAction;
-	bool _alwaysShowContents; //QUESTION: Add to options?
+    bool _alwaysShowContents;
     bool _hasUnsavedChanges;
 };
 

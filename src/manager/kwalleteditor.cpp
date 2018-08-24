@@ -79,7 +79,7 @@ QAction *KWalletEditor::_alwaysHideContentsAction = nullptr;
 RegisterCreateActionsMethod KWalletEditor::_registerCreateActionMethod(&KWalletEditor::createActions);
 
 KWalletEditor::KWalletEditor(QWidget *parent, const QString &name)
-    : QWidget(parent), _displayedItem(nullptr), _actionCollection(nullptr), _alwaysShowContents(false)
+    : QWidget(parent), _displayedItem(nullptr), _actionCollection(nullptr)
 {
     setupUi(this);
     setObjectName(name);
@@ -121,7 +121,9 @@ KWalletEditor::KWalletEditor(QWidget *parent, const QString &name)
         splitterSize.append(_splitter->width() / 2);
     }
     _splitter->setSizes(splitterSize);
-    _alwaysShowContents = cg.readEntry("AlwaysShowContents", false);
+
+    KConfigGroup conf(KSharedConfig::openConfig(), "Wallet");
+    _alwaysShowContents = cg.readEntry("Show Contents", false);
 
     _searchLine->setFocus();
 
@@ -750,8 +752,13 @@ void KWalletEditor::newEntry()
         _w->writeMap(dialog->entryName(), QMap<QString, QString>());
         break;
     case KWallet::Wallet::Stream:
-        _w->writeEntry(dialog->entryName(), QByteArray());
+    {
+        QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), QDir::home().absolutePath(), tr("All Files"));
+        QFile fileBinary(fileName);
+        fileBinary.open(QIODevice::ReadOnly);
+        _w->writeEntry(dialog->entryName(), fileBinary.readAll());
         break;
+    }
     default:
         abort();
     }
@@ -1166,9 +1173,6 @@ void KWalletEditor::exportXML()
                 }
                 break;
             }
-            case KWallet::Wallet::Unknown:
-            default:
-                break;
             }
         }
         xml.writeEndElement();

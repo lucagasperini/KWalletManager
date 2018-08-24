@@ -2,8 +2,25 @@
 <ui version="4.0">
  <class>WalletConfigWidget</class>
  <widget class="QWidget" name="WalletConfigWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>487</width>
+    <height>498</height>
+   </rect>
+  </property>
   <layout class="QVBoxLayout" name="verticalLayout">
-   <property name="margin">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
     <number>0</number>
    </property>
    <item>
@@ -239,6 +256,13 @@
            </layout>
           </item>
           <item>
+           <widget class="QCheckBox" name="_showContent">
+            <property name="text">
+             <string>Enable as default &quot;Show Contents&quot;</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <spacer>
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
@@ -299,33 +323,15 @@
           <property name="text">
            <string>Wallet</string>
           </property>
-          <property name="clickable">
-           <bool>true</bool>
-          </property>
-          <property name="resizable">
-           <bool>true</bool>
-          </property>
          </column>
          <column>
           <property name="text">
            <string>Application</string>
           </property>
-          <property name="clickable">
-           <bool>true</bool>
-          </property>
-          <property name="resizable">
-           <bool>true</bool>
-          </property>
          </column>
          <column>
           <property name="text">
            <string>Policy</string>
-          </property>
-          <property name="clickable">
-           <bool>true</bool>
-          </property>
-          <property name="resizable">
-           <bool>true</bool>
           </property>
          </column>
         </widget>

@@ -68,6 +68,7 @@ KWalletConfig::KWalletConfig(QWidget *parent, const QVariantList &args)
 
     connect(_wcw->_enabled, &QCheckBox::clicked, this, &KWalletConfig::configChanged);
     connect(_wcw->_launchManager, &QCheckBox::clicked, this, &KWalletConfig::configChanged);
+    connect(_wcw->_showContent, &QCheckBox::clicked, this, &KWalletConfig::configChanged);
     connect(_wcw->_autocloseManager, &QCheckBox::clicked, this, &KWalletConfig::configChanged);
     connect(_wcw->_autoclose, &QCheckBox::clicked, this, &KWalletConfig::configChanged);
     connect(_wcw->_closeIdle, &QCheckBox::clicked, this, &KWalletConfig::configChanged);
@@ -191,6 +192,7 @@ void KWalletConfig::load()
     _wcw->_enabled->setChecked(config.readEntry("Enabled", true));
     _wcw->_openPrompt->setChecked(config.readEntry("Prompt on Open", false));
     _wcw->_launchManager->setChecked(config.readEntry("Launch Manager", false));
+    _wcw->_showContent->setChecked(config.readEntry("Show Contents", true));
     _wcw->_autocloseManager->setChecked(! config.readEntry("Leave Manager Open", false));
     _wcw->_screensaverLock->setChecked(config.readEntry("Close on Screensaver", false));
     _wcw->_autoclose->setChecked(!config.readEntry("Leave Open", true));
@@ -286,6 +288,7 @@ void KWalletConfig::save()
     KConfigGroup config(_cfg, "Wallet");
     config.writeEntry("Enabled", _wcw->_enabled->isChecked());
     config.writeEntry("Launch Manager", _wcw->_launchManager->isChecked());
+    config.writeEntry("Show Contents", _wcw->_showContent->isChecked());
     config.writeEntry("Leave Manager Open", !_wcw->_autocloseManager->isChecked());
     config.writeEntry("Leave Open", !_wcw->_autoclose->isChecked());
     config.writeEntry("Close When Idle", _wcw->_closeIdle->isChecked());
@@ -354,6 +357,7 @@ void KWalletConfig::defaults()
     _wcw->_enabled->setChecked(true);
     _wcw->_openPrompt->setChecked(false);
     _wcw->_launchManager->setChecked(true);
+    _wcw->_showContent->setChecked(true);
     _wcw->_autocloseManager->setChecked(false);
     _wcw->_screensaverLock->setChecked(false);
     _wcw->_autoclose->setChecked(true);
