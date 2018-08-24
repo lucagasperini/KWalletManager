@@ -77,9 +77,9 @@ private slots:
     void changePassword();
 
     void walletOpened(bool success);
-    void hidePasswordContents();
-    void showPasswordContents();
-    void showHideMapEditorValue(bool show);
+    void showPasswordValue(bool v);
+    void showMapEditorValue(bool v);
+    void showBinaryValue(bool v);
 
     void exportXML();
     void importXML();
@@ -88,8 +88,6 @@ private slots:
     void copyPassword();
 
     void onSearchTextChanged(const QString &);
-    void onAlwaysShowContents(bool);
-    void onAlwaysHideContents(bool);
 
 signals:
     void enableWalletActions(bool enable);
@@ -118,7 +116,7 @@ private:
     QMap<QString, QString> _currentMap; // save memory by storing
     // only the most recent map.
     KWMapEditor *_mapEditor;
-    QCheckBox *_mapEditorShowHide;
+    QCheckBox *_showMap;
 	QPushButton* _genPassword;
     bool _newWallet;
     QMenu *_contextMenu;
@@ -127,8 +125,7 @@ private:
     QMenu *_controlMenu;
     QMenu *_walletSubmenu;
     KTreeWidgetSearchLine *_searchLine;
-    static QAction *_alwaysShowContentsAction, *_alwaysHideContentsAction;
-    bool _alwaysShowContents;
+    bool _showContents;
     bool _hasUnsavedChanges;
 };
 

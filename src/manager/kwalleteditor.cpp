@@ -73,8 +73,6 @@ QAction *KWalletEditor::_newEntryAction = nullptr;
 QAction *KWalletEditor::_renameEntryAction = nullptr;
 QAction *KWalletEditor::_deleteEntryAction = nullptr;
 QAction *KWalletEditor::_copyPassAction = nullptr;
-QAction *KWalletEditor::_alwaysShowContentsAction = nullptr;
-QAction *KWalletEditor::_alwaysHideContentsAction = nullptr;
 
 RegisterCreateActionsMethod KWalletEditor::_registerCreateActionMethod(&KWalletEditor::createActions);
 
@@ -106,10 +104,9 @@ KWalletEditor::KWalletEditor(QWidget *parent, const QString &name)
 
     box = new QVBoxLayout(_entryStack->widget(2));
     box->setMargin(0);
-    _mapEditorShowHide = new QCheckBox(i18n("&Show values"), _entryStack->widget(2));
-    connect(_mapEditorShowHide, &QCheckBox::toggled, this, &KWalletEditor::showHideMapEditorValue);
+    _showMap = new QCheckBox(i18n("&Show values"), _entryStack->widget(2));
     _mapEditor = new KWMapEditor(_currentMap, _entryStack->widget(2));
-    box->addWidget(_mapEditorShowHide);
+    box->addWidget(_showMap);
     box->addWidget(_mapEditor);
 
     // load splitter size
@@ -122,8 +119,7 @@ KWalletEditor::KWalletEditor(QWidget *parent, const QString &name)
     }
     _splitter->setSizes(splitterSize);
 
-    KConfigGroup conf(KSharedConfig::openConfig(), "Wallet");
-    _alwaysShowContents = cg.readEntry("Show Contents", false);
+    _showContents = cg.readEntry("AlwaysShowContents", true);
 
     _searchLine->setFocus();
 
@@ -137,10 +133,15 @@ KWalletEditor::KWalletEditor(QWidget *parent, const QString &name)
     connect(_undoChanges, &QPushButton::clicked, this, &KWalletEditor::restoreEntry);
     connect(_saveChanges, &QPushButton::clicked, this, &KWalletEditor::saveEntry);
 
-    connect(_showContents, &QToolButton::clicked, this, &KWalletEditor::showPasswordContents);
-    connect(_hideContents, &QToolButton::clicked, this, &KWalletEditor::hidePasswordContents);
+    connect(_showPassword, &QCheckBox::toggled, this, &KWalletEditor::showPasswordValue);
+    connect(_showMap, &QCheckBox::toggled, this, &KWalletEditor::showMapEditorValue);
+    connect(_showBinary, &QCheckBox::toggled, this, &KWalletEditor::showBinaryValue);
 
-    _binaryViewShow->setChecked(_alwaysShowContents);
+    _showBinary->setChecked(_showContents);
+    _showPassword->setChecked(_showContents);
+    _showMap->setChecked(_showContents);
+
+    _entryStack->setCurrentIndex(0);
 //    createActions();
     // TODO: remove kwalleteditor.rc file
 }
@@ -153,7 +154,6 @@ KWalletEditor::~KWalletEditor()
     // save splitter size
     KConfigGroup cg(KSharedConfig::openConfig(), "WalletEditor");
     cg.writeEntry("SplitterSize", _splitter->sizes());
-    cg.writeEntry("AlwaysShowContents", _alwaysShowContents);
     cg.sync();
 
     delete _w;
@@ -182,9 +182,6 @@ void KWalletEditor::setWallet(KWallet::Wallet *wallet, bool isPath)
     emit enableFolderActions(true);
     emit enableWalletActions(true);
     emit enableContextFolderActions(true);
-
-    _mapEditorShowHide->setChecked(false);
-    showHideMapEditorValue(false);
 
     setFocus();
     _searchLine->setFocus();
@@ -240,14 +237,6 @@ void KWalletEditor::createActions(KActionCollection *actionCollection)
     _deleteEntryAction->setText(i18n("&Delete"));
     actionCollection->setDefaultShortcut(_deleteEntryAction, Qt::Key_Delete);
     _deleteEntryAction->setEnabled(false);
-
-    _alwaysShowContentsAction = actionCollection->addAction(QStringLiteral("always_show_contents"));
-    _alwaysShowContentsAction->setText(i18n("Always show contents"));
-    _alwaysShowContentsAction->setCheckable(true);
-
-    _alwaysHideContentsAction = actionCollection->addAction(QStringLiteral("always_hide_contents"));
-    _alwaysHideContentsAction->setText(i18n("Always hide contents"));
-    _alwaysHideContentsAction->setCheckable(true);
 }
 
 void KWalletEditor::connectActions()
@@ -277,13 +266,6 @@ void KWalletEditor::connectActions()
     connect(_copyPassAction, &QAction::triggered, this, &KWalletEditor::copyPassword);
     connect(this, &KWalletEditor::enableWalletActions, _copyPassAction, &QAction::setEnabled);
 
-    _showContents->addAction(_alwaysShowContentsAction);
-    _alwaysShowContentsAction->setChecked(_alwaysShowContents);
-    connect(_alwaysShowContentsAction, &QAction::triggered, this, &KWalletEditor::onAlwaysShowContents);
-
-    _hideContents->addAction(_alwaysHideContentsAction);
-    _alwaysHideContentsAction->setChecked(!_alwaysShowContents);
-    connect(_alwaysHideContentsAction, &QAction::triggered, this, &KWalletEditor::onAlwaysHideContents);
 }
 
 void KWalletEditor::disconnectActions()
@@ -312,9 +294,6 @@ void KWalletEditor::disconnectActions()
 
     disconnect(_copyPassAction, &QAction::triggered, this, &KWalletEditor::copyPassword);
     disconnect(this, &KWalletEditor::enableWalletActions, _copyPassAction, &QAction::setEnabled);
-
-    disconnect(_alwaysShowContentsAction, &QAction::triggered, this, &KWalletEditor::onAlwaysShowContents);
-    disconnect(_alwaysHideContentsAction, &QAction::triggered, this, &KWalletEditor::onAlwaysHideContents);
 }
 
 void KWalletEditor::walletClosed()
@@ -515,7 +494,8 @@ void KWalletEditor::entrySelectionChanged(QTreeWidgetItem *item)
             if (ei->entryType() == KWallet::Wallet::Password) {
                 QString pass;
                 if (_w->readPassword(item->text(0), pass) == 0) {
-                    _entryStack->setCurrentIndex(4);
+                    _entryStack->setCurrentIndex(1);
+                    _showPassword->setChecked(_showContents);
                     _entryName->setText(i18n("Password: %1",
                                              item->text(0)));
                     _passwordValue->setText(pass);
@@ -526,21 +506,20 @@ void KWalletEditor::entrySelectionChanged(QTreeWidgetItem *item)
                 // add a context-menu action for copying passwords
                 _contextMenu->addSeparator();
                 _contextMenu->addAction(_copyPassAction);
-                if (_alwaysShowContents) {
-                    QTimer::singleShot(0, this, &KWalletEditor::showPasswordContents);
-                }
             } else if (ei->entryType() == KWallet::Wallet::Map) {
                 _entryStack->setCurrentIndex(2);
+                _mapEditor->hideColumn(2); /* WARNING: prevent bug */
+                _showMap->setChecked(_showContents);
                 if (_w->readMap(item->text(0), _currentMap) == 0) {
                     _mapEditor->reload();
                     _entryName->setText(i18n("Name-Value Map: %1", item->text(0)));
                     _saveChanges->setEnabled(false);
                     _undoChanges->setEnabled(false);
                     _hasUnsavedChanges = false;
-                    showHideMapEditorValue(_mapEditorShowHide->isChecked());
                 }
             } else if (ei->entryType() == KWallet::Wallet::Stream) {
                 _entryStack->setCurrentIndex(3);
+                _showBinary->setChecked(_showContents);
                 QByteArray ba;
                 if (_w->readEntry(item->text(0), ba) == 0) {
                     _entryName->setText(i18n("Binary Data: %1",
@@ -860,23 +839,20 @@ void KWalletEditor::walletOpened(bool success)
     }
 }
 
-void KWalletEditor::hidePasswordContents()
+
+void KWalletEditor::showPasswordValue(bool v)
 {
-    _entryStack->setCurrentIndex(4);
+    v ? _passwordValue->show() : _passwordValue->hide();
 }
 
-void KWalletEditor::showPasswordContents()
+void KWalletEditor::showMapEditorValue(bool v)
 {
-    _entryStack->setCurrentIndex(1);
+    v ? _mapEditor->showColumn(2) : _mapEditor->hideColumn(2);
 }
 
-void KWalletEditor::showHideMapEditorValue(bool show)
+void KWalletEditor::showBinaryValue(bool v)
 {
-    if (show) {
-        _mapEditor->showColumn(2);
-    } else {
-        _mapEditor->hideColumn(2);
-    }
+    v ? _binaryView->show() : _binaryView->hide();
 }
 
 enum MergePlan { Prompt = 0, Always = 1, Never = 2, Yes = 3, No = 4 };
@@ -1241,22 +1217,6 @@ void KWalletEditor::onSearchTextChanged(const QString &text)
     }
     // TODO: reduce timer count when KTreeWidgetSearchLine::searchUpdated signal will be there
     QTimer::singleShot(300, _entryList, &KWalletEntryList::refreshItemsCount);
-}
-
-void KWalletEditor::onAlwaysShowContents(bool checked)
-{
-    _alwaysShowContents = checked;
-    _alwaysHideContentsAction->setChecked(!_alwaysShowContents);
-    showPasswordContents();
-}
-
-void KWalletEditor::onAlwaysHideContents(bool checked)
-{
-    _alwaysShowContents = !checked;
-    _alwaysShowContentsAction->setChecked(_alwaysShowContents);
-    if (checked) {
-        hidePasswordContents();
-    }
 }
 
 bool KWalletEditor::hasUnsavedChanges() const

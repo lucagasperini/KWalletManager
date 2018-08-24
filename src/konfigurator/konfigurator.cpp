@@ -192,7 +192,6 @@ void KWalletConfig::load()
     _wcw->_enabled->setChecked(config.readEntry("Enabled", true));
     _wcw->_openPrompt->setChecked(config.readEntry("Prompt on Open", false));
     _wcw->_launchManager->setChecked(config.readEntry("Launch Manager", false));
-    _wcw->_showContent->setChecked(config.readEntry("Show Contents", true));
     _wcw->_autocloseManager->setChecked(! config.readEntry("Leave Manager Open", false));
     _wcw->_screensaverLock->setChecked(config.readEntry("Close on Screensaver", false));
     _wcw->_autoclose->setChecked(!config.readEntry("Leave Open", true));
@@ -220,6 +219,8 @@ void KWalletConfig::load()
         _wcw->_localWalletSelected->setChecked(false);
     }
     _wcw->_accessList->clear();
+    KConfigGroup cfg_editor(_cfg, "WalletEditor");
+    _wcw->_showContent->setChecked(cfg_editor.readEntry("AlwaysShowContents", true));
     KConfigGroup ad(_cfg, "Auto Deny");
     KConfigGroup aa(_cfg, "Auto Allow");
     QStringList denykeys = ad.entryMap().keys();
@@ -288,7 +289,6 @@ void KWalletConfig::save()
     KConfigGroup config(_cfg, "Wallet");
     config.writeEntry("Enabled", _wcw->_enabled->isChecked());
     config.writeEntry("Launch Manager", _wcw->_launchManager->isChecked());
-    config.writeEntry("Show Contents", _wcw->_showContent->isChecked());
     config.writeEntry("Leave Manager Open", !_wcw->_autocloseManager->isChecked());
     config.writeEntry("Leave Open", !_wcw->_autoclose->isChecked());
     config.writeEntry("Close When Idle", _wcw->_closeIdle->isChecked());
@@ -310,6 +310,8 @@ void KWalletConfig::save()
     }
 
     // FIXME: won't survive a language change
+    KConfigGroup cfg_editor(_cfg, "WalletEditor");
+    cfg_editor.writeEntry("AlwaysShowContents", _wcw->_showContent->isChecked());
     _cfg->deleteGroup("Auto Allow");
     _cfg->deleteGroup("Auto Deny");
     config  = _cfg->group("Auto Allow");
