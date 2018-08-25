@@ -1,0 +1,1914 @@
+diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /home/luca/Progetti/kwalletmanager/kwalletmanager/TODO /home/luca/Progetti/kwalletmanager/git/TODO
+--- /home/luca/Progetti/kwalletmanager/kwalletmanager/TODO	2018-08-25 08:53:08.274809347 +0200
++++ /home/luca/Progetti/kwalletmanager/git/TODO	2018-08-24 17:34:21.403994832 +0200
+@@ -12,3 +12,9 @@
+ 
+ GPG
+ - Provide a backend conversion tool to help switching from blowfish to GPG or viceversa
++
++Graphics:
++- Review KWalletEditor form
++
++Config:
++- Move configuration file from kwalletrc to kwalletmanager5rc
+diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/konfigurator/konfigurator.cpp /home/luca/Progetti/kwalletmanager/git/src/konfigurator/konfigurator.cpp
+--- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/konfigurator/konfigurator.cpp	2018-08-25 08:53:08.274809347 +0200
++++ /home/luca/Progetti/kwalletmanager/git/src/konfigurator/konfigurator.cpp	2018-08-24 17:41:39.134358188 +0200
+@@ -68,6 +68,7 @@
+ 
+     connect(_wcw->_enabled, &QCheckBox::clicked, this, &KWalletConfig::configChanged);
+     connect(_wcw->_launchManager, &QCheckBox::clicked, this, &KWalletConfig::configChanged);
++    connect(_wcw->_showContent, &QCheckBox::clicked, this, &KWalletConfig::configChanged);
+     connect(_wcw->_autocloseManager, &QCheckBox::clicked, this, &KWalletConfig::configChanged);
+     connect(_wcw->_autoclose, &QCheckBox::clicked, this, &KWalletConfig::configChanged);
+     connect(_wcw->_closeIdle, &QCheckBox::clicked, this, &KWalletConfig::configChanged);
+@@ -218,6 +219,8 @@
+         _wcw->_localWalletSelected->setChecked(false);
+     }
+     _wcw->_accessList->clear();
++    KConfigGroup cfg_editor(KSharedConfig::openConfig(QStringLiteral("kwalletmanager5rc"), KConfig::NoGlobals), "WalletEditor");
++    _wcw->_showContent->setChecked(cfg_editor.readEntry("AlwaysShowContents", true));
+     KConfigGroup ad(_cfg, "Auto Deny");
+     KConfigGroup aa(_cfg, "Auto Allow");
+     QStringList denykeys = ad.entryMap().keys();
+@@ -307,6 +310,8 @@
+     }
+ 
+     // FIXME: won't survive a language change
++    KConfigGroup cfg_editor(KSharedConfig::openConfig(QStringLiteral("kwalletmanager5rc"), KConfig::NoGlobals), "WalletEditor");
++    cfg_editor.writeEntry("AlwaysShowContents", _wcw->_showContent->isChecked());
+     _cfg->deleteGroup("Auto Allow");
+     _cfg->deleteGroup("Auto Deny");
+     config  = _cfg->group("Auto Allow");
+@@ -354,6 +359,7 @@
+     _wcw->_enabled->setChecked(true);
+     _wcw->_openPrompt->setChecked(false);
+     _wcw->_launchManager->setChecked(true);
++    _wcw->_showContent->setChecked(true);
+     _wcw->_autocloseManager->setChecked(false);
+     _wcw->_screensaverLock->setChecked(false);
+     _wcw->_autoclose->setChecked(true);
+diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/konfigurator/walletconfigwidget.ui /home/luca/Progetti/kwalletmanager/git/src/konfigurator/walletconfigwidget.ui
+--- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/konfigurator/walletconfigwidget.ui	2018-08-25 08:53:08.274809347 +0200
++++ /home/luca/Progetti/kwalletmanager/git/src/konfigurator/walletconfigwidget.ui	2018-08-24 06:01:30.676707196 +0200
+@@ -2,8 +2,25 @@
+ <ui version="4.0">
+  <class>WalletConfigWidget</class>
+  <widget class="QWidget" name="WalletConfigWidget">
++  <property name="geometry">
++   <rect>
++    <x>0</x>
++    <y>0</y>
++    <width>487</width>
++    <height>498</height>
++   </rect>
++  </property>
+   <layout class="QVBoxLayout" name="verticalLayout">
+-   <property name="margin">
++   <property name="leftMargin">
++    <number>0</number>
++   </property>
++   <property name="topMargin">
++    <number>0</number>
++   </property>
++   <property name="rightMargin">
++    <number>0</number>
++   </property>
++   <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+@@ -239,6 +256,13 @@
+            </layout>
+           </item>
+           <item>
++           <widget class="QCheckBox" name="_showContent">
++            <property name="text">
++             <string>Enable as default &quot;Show Contents&quot;</string>
++            </property>
++           </widget>
++          </item>
++          <item>
+            <spacer>
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+@@ -299,34 +323,16 @@
+           <property name="text">
+            <string>Wallet</string>
+           </property>
+-          <property name="clickable">
+-           <bool>true</bool>
+-          </property>
+-          <property name="resizable">
+-           <bool>true</bool>
+-          </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Application</string>
+           </property>
+-          <property name="clickable">
+-           <bool>true</bool>
+-          </property>
+-          <property name="resizable">
+-           <bool>true</bool>
+-          </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>Policy</string>
+           </property>
+-          <property name="clickable">
+-           <bool>true</bool>
+-          </property>
+-          <property name="resizable">
+-           <bool>true</bool>
+-          </property>
+          </column>
+         </widget>
+        </item>
+diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/CMakeLists.txt /home/luca/Progetti/kwalletmanager/git/src/manager/CMakeLists.txt
+--- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/CMakeLists.txt	2018-08-25 08:53:08.274809347 +0200
++++ /home/luca/Progetti/kwalletmanager/git/src/manager/CMakeLists.txt	2018-08-23 05:26:49.000000000 +0200
+@@ -19,6 +19,8 @@
+     authorizedappmodel.cpp
+     authorizedapplicationstable.cpp
+     revokeauthbutton.cpp
++    kwalletmanagerinputentry.cpp
++    wingenerate.cpp
+ )
+ 
+ ecm_qt_declare_logging_category(kwalletmanager_SRCS
+@@ -35,6 +37,8 @@
+     kbetterthankdialogbase.ui
+     walletcontrolwidget.ui
+     applicationsmanager.ui
++    kwalletmanagerinputentry.ui
++    wingenerate.ui
+ )
+ 
+ 
+diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/allyourbase.h /home/luca/Progetti/kwalletmanager/git/src/manager/allyourbase.h
+--- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/allyourbase.h	2018-08-25 08:53:08.274809347 +0200
++++ /home/luca/Progetti/kwalletmanager/git/src/manager/allyourbase.h	2018-08-23 06:29:33.000000000 +0200
+@@ -55,6 +55,7 @@
+     void setName(const QString &n);
+     // Cancel renaming
+     void restoreName();
++	KWallet::Wallet::EntryType entryType() const { return _wallet->entryType(m_name); }
+ 
+ public:
+     KWallet::Wallet *_wallet;
+diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/kwalleteditor.cpp /home/luca/Progetti/kwalletmanager/git/src/manager/kwalleteditor.cpp
+--- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/kwalleteditor.cpp	2018-08-25 08:53:08.278142632 +0200
++++ /home/luca/Progetti/kwalletmanager/git/src/manager/kwalleteditor.cpp	2018-08-25 08:39:55.343010882 +0200
+@@ -22,6 +22,7 @@
+ #include "kbetterthankdialogbase.h"
+ #include "kwmapeditor.h"
+ #include "allyourbase.h"
++#include "kwalletmanagerinputentry.h"
+ 
+ #include <qaction.h>
+ #include <qdialog.h>
+@@ -72,13 +73,11 @@
+ QAction *KWalletEditor::_renameEntryAction = nullptr;
+ QAction *KWalletEditor::_deleteEntryAction = nullptr;
+ QAction *KWalletEditor::_copyPassAction = nullptr;
+-QAction *KWalletEditor::_alwaysShowContentsAction = nullptr;
+-QAction *KWalletEditor::_alwaysHideContentsAction = nullptr;
+ 
+ RegisterCreateActionsMethod KWalletEditor::_registerCreateActionMethod(&KWalletEditor::createActions);
+ 
+ KWalletEditor::KWalletEditor(QWidget *parent, const QString &name)
+-    : QWidget(parent), _displayedItem(nullptr), _actionCollection(nullptr), _alwaysShowContents(false)
++    : QWidget(parent), _displayedItem(nullptr), _actionCollection(nullptr)
+ {
+     setupUi(this);
+     setObjectName(name);
+@@ -103,13 +102,7 @@
+ 
+     _entryStack->setEnabled(true);
+ 
+-    box = new QVBoxLayout(_entryStack->widget(2));
+-    box->setMargin(0);
+-    _mapEditorShowHide = new QCheckBox(i18n("&Show values"), _entryStack->widget(2));
+-    connect(_mapEditorShowHide, &QCheckBox::toggled, this, &KWalletEditor::showHideMapEditorValue);
+-    _mapEditor = new KWMapEditor(_currentMap, _entryStack->widget(2));
+-    box->addWidget(_mapEditorShowHide);
+-    box->addWidget(_mapEditor);
++    _currentMap = _mapEditor->currentMap();
+ 
+     // load splitter size
+     KConfigGroup cg(KSharedConfig::openConfig(), "WalletEditor");
+@@ -120,7 +113,8 @@
+         splitterSize.append(_splitter->width() / 2);
+     }
+     _splitter->setSizes(splitterSize);
+-    _alwaysShowContents = cg.readEntry("AlwaysShowContents", false);
++
++    _showContent = cg.readEntry("AlwaysShowContents", true);
+ 
+     _searchLine->setFocus();
+ 
+@@ -134,10 +128,12 @@
+     connect(_undoChanges, &QPushButton::clicked, this, &KWalletEditor::restoreEntry);
+     connect(_saveChanges, &QPushButton::clicked, this, &KWalletEditor::saveEntry);
+ 
+-    connect(_showContents, &QToolButton::clicked, this, &KWalletEditor::showPasswordContents);
+-    connect(_hideContents, &QToolButton::clicked, this, &KWalletEditor::hidePasswordContents);
++    connect(_showCheckBox, &QCheckBox::toggled, this, &KWalletEditor::showContent);
++    connect(_showCheckBox, &QCheckBox::toggled, this, &KWalletEditor::showContent);
++    connect(_showCheckBox, &QCheckBox::toggled, this, &KWalletEditor::showContent);
+ 
+-    _binaryViewShow->setChecked(_alwaysShowContents);
++    _entryStack->setCurrentIndex(0); /*QUESTION: change _showCheckBox and showContent when change current index?*/
++    showContent(_showContent);
+ //    createActions();
+     // TODO: remove kwalleteditor.rc file
+ }
+@@ -150,7 +146,6 @@
+     // save splitter size
+     KConfigGroup cg(KSharedConfig::openConfig(), "WalletEditor");
+     cg.writeEntry("SplitterSize", _splitter->sizes());
+-    cg.writeEntry("AlwaysShowContents", _alwaysShowContents);
+     cg.sync();
+ 
+     delete _w;
+@@ -180,9 +175,6 @@
+     emit enableWalletActions(true);
+     emit enableContextFolderActions(true);
+ 
+-    _mapEditorShowHide->setChecked(false);
+-    showHideMapEditorValue(false);
+-
+     setFocus();
+     _searchLine->setFocus();
+ }
+@@ -237,14 +229,6 @@
+     _deleteEntryAction->setText(i18n("&Delete"));
+     actionCollection->setDefaultShortcut(_deleteEntryAction, Qt::Key_Delete);
+     _deleteEntryAction->setEnabled(false);
+-
+-    _alwaysShowContentsAction = actionCollection->addAction(QStringLiteral("always_show_contents"));
+-    _alwaysShowContentsAction->setText(i18n("Always show contents"));
+-    _alwaysShowContentsAction->setCheckable(true);
+-
+-    _alwaysHideContentsAction = actionCollection->addAction(QStringLiteral("always_hide_contents"));
+-    _alwaysHideContentsAction->setText(i18n("Always hide contents"));
+-    _alwaysHideContentsAction->setCheckable(true);
+ }
+ 
+ void KWalletEditor::connectActions()
+@@ -274,13 +258,6 @@
+     connect(_copyPassAction, &QAction::triggered, this, &KWalletEditor::copyPassword);
+     connect(this, &KWalletEditor::enableWalletActions, _copyPassAction, &QAction::setEnabled);
+ 
+-    _showContents->addAction(_alwaysShowContentsAction);
+-    _alwaysShowContentsAction->setChecked(_alwaysShowContents);
+-    connect(_alwaysShowContentsAction, &QAction::triggered, this, &KWalletEditor::onAlwaysShowContents);
+-
+-    _hideContents->addAction(_alwaysHideContentsAction);
+-    _alwaysHideContentsAction->setChecked(!_alwaysShowContents);
+-    connect(_alwaysHideContentsAction, &QAction::triggered, this, &KWalletEditor::onAlwaysHideContents);
+ }
+ 
+ void KWalletEditor::disconnectActions()
+@@ -309,9 +286,6 @@
+ 
+     disconnect(_copyPassAction, &QAction::triggered, this, &KWalletEditor::copyPassword);
+     disconnect(this, &KWalletEditor::enableWalletActions, _copyPassAction, &QAction::setEnabled);
+-
+-    disconnect(_alwaysShowContentsAction, &QAction::triggered, this, &KWalletEditor::onAlwaysShowContents);
+-    disconnect(_alwaysHideContentsAction, &QAction::triggered, this, &KWalletEditor::onAlwaysHideContents);
+ }
+ 
+ void KWalletEditor::walletClosed()
+@@ -352,28 +326,9 @@
+         const QStringList entries = _w->entryList();
+         KWalletFolderItem *item = new KWalletFolderItem(_w, _entryList, *i, entries.count());
+ 
+-        KWalletContainerItem *pi = new KWalletContainerItem(item, i18n("Passwords"), KWallet::Wallet::Password);
+-        KWalletContainerItem *mi = new KWalletContainerItem(item, i18n("Maps"), KWallet::Wallet::Map);
+-        KWalletContainerItem *bi = new KWalletContainerItem(item, i18n("Binary Data"), KWallet::Wallet::Stream);
+-        KWalletContainerItem *ui = new KWalletContainerItem(item, i18n("Unknown"), KWallet::Wallet::Unknown);
++        for (QStringList::const_iterator j = entries.begin(); j != entries.end(); ++j)
++            new KWalletEntryItem(_w, item, *j);
+ 
+-        for (QStringList::const_iterator j = entries.begin(); j != entries.end(); ++j) {
+-            switch (_w->entryType(*j)) {
+-            case KWallet::Wallet::Password:
+-                new KWalletEntryItem(_w, pi, *j);
+-                break;
+-            case KWallet::Wallet::Stream:
+-                new KWalletEntryItem(_w, bi, *j);
+-                break;
+-            case KWallet::Wallet::Map:
+-                new KWalletEntryItem(_w, mi, *j);
+-                break;
+-            case KWallet::Wallet::Unknown:
+-            default:
+-                new QTreeWidgetItem(ui, QStringList() << *j);
+-                break;
+-            }
+-        }
+         _entryList->setEnabled(true);
+     }
+ 
+@@ -445,25 +400,22 @@
+ void KWalletEditor::saveEntry()
+ {
+     int rc = 1;
+-    QTreeWidgetItem *item = _displayedItem; //  _entryList->currentItem();
++    KWalletEntryItem* item = dynamic_cast<KWalletEntryItem *>(_displayedItem); //  _entryList->currentItem();
+     _saveChanges->setEnabled(false);
+     _undoChanges->setEnabled(false);
+     _hasUnsavedChanges = false;
+     if (item && _w && item->parent()) {
+-        KWalletContainerItem *ci = dynamic_cast<KWalletContainerItem *>(item->parent());
+-        if (ci) {
+-            if (ci->entryType() == KWallet::Wallet::Password) {
+-                rc = _w->writePassword(item->text(0), _passwordValue->toPlainText());
+-            } else if (ci->entryType() == KWallet::Wallet::Map) {
+-                _mapEditor->saveMap();
+-                rc = _w->writeMap(item->text(0), _currentMap);
+-            } else {
+-                return;
+-            }
++        if (item->entryType() == KWallet::Wallet::Password) {
++            rc = _w->writePassword(item->text(0), _passwordValue->toPlainText());
++        } else if (item->entryType() == KWallet::Wallet::Map) {
++            _mapEditor->saveMap();
++            rc = _w->writeMap(item->text(0), *_currentMap);
++        } else {
++            return; //QUESTION: and save the Binary Data?
++        }
+ 
+-            if (rc == 0) {
+-                return;
+-            }
++        if (rc == 0) {
++            return;
+         }
+     }
+ 
+@@ -497,7 +449,7 @@
+         }
+     }
+ 
+-    KWalletContainerItem *ci = nullptr;
++    KWalletEntryItem *ei = dynamic_cast<KWalletEntryItem*>(item);
+     KWalletFolderItem *fi = nullptr;
+ 
+     // clear the context menu
+@@ -516,11 +468,7 @@
+         // TODO rtti
+         switch (item->type()) {
+         case KWalletEntryItemClass:
+-            ci = dynamic_cast<KWalletContainerItem *>(item->parent());
+-            if (!ci) {
+-                return;
+-            }
+-            fi = dynamic_cast<KWalletFolderItem *>(ci->parent());
++            fi = dynamic_cast<KWalletFolderItem *>(item->parent());
+             if (!fi) {
+                 return;
+             }
+@@ -535,10 +483,11 @@
+             _renameEntryAction->setEnabled(true);
+             _deleteEntryAction->setEnabled(true);
+ 
+-            if (ci->entryType() == KWallet::Wallet::Password) {
++            if (ei->entryType() == KWallet::Wallet::Password) {
+                 QString pass;
++                _entryStack->setCurrentIndex(1);
++                showContent(_showContent);
+                 if (_w->readPassword(item->text(0), pass) == 0) {
+-                    _entryStack->setCurrentIndex(4);
+                     _entryName->setText(i18n("Password: %1",
+                                              item->text(0)));
+                     _passwordValue->setText(pass);
+@@ -549,21 +498,19 @@
+                 // add a context-menu action for copying passwords
+                 _contextMenu->addSeparator();
+                 _contextMenu->addAction(_copyPassAction);
+-                if (_alwaysShowContents) {
+-                    QTimer::singleShot(0, this, &KWalletEditor::showPasswordContents);
+-                }
+-            } else if (ci->entryType() == KWallet::Wallet::Map) {
++            } else if (ei->entryType() == KWallet::Wallet::Map) {
+                 _entryStack->setCurrentIndex(2);
+-                if (_w->readMap(item->text(0), _currentMap) == 0) {
++                showContent(_showContent);
++                if (_w->readMap(item->text(0), *_currentMap) == 0) {
+                     _mapEditor->reload();
+                     _entryName->setText(i18n("Name-Value Map: %1", item->text(0)));
+                     _saveChanges->setEnabled(false);
+                     _undoChanges->setEnabled(false);
+                     _hasUnsavedChanges = false;
+-                    showHideMapEditorValue(_mapEditorShowHide->isChecked());
+                 }
+-            } else if (ci->entryType() == KWallet::Wallet::Stream) {
++            } else if (ei->entryType() == KWallet::Wallet::Stream) {
+                 _entryStack->setCurrentIndex(3);
++                showContent(_showContent);
+                 QByteArray ba;
+                 if (_w->readEntry(item->text(0), ba) == 0) {
+                     _entryName->setText(i18n("Binary Data: %1",
+@@ -575,31 +522,6 @@
+                 }
+             }
+             break;
+-
+-        case KWalletContainerItemClass:
+-            ci = dynamic_cast<KWalletContainerItem *>(item);
+-            if (!ci) {
+-                return;
+-            }
+-            if (ci->entryType() == KWallet::Wallet::Unknown) {
+-                // disable context menu on unknown items
+-                _contextMenu->setEnabled(false);
+-            } else {
+-                // add the context menu action
+-                _contextMenu->addAction(_newEntryAction);
+-                _newEntryAction->setEnabled(true);
+-            }
+-
+-            fi = dynamic_cast<KWalletFolderItem *>(item->parent());
+-            if (!fi) {
+-                return;
+-            }
+-            _w->setFolder(fi->name());
+-            _deleteFolderAction->setEnabled(false);
+-            _entryName->clear();
+-            _entryStack->setCurrentIndex(0);
+-            break;
+-
+         case KWalletFolderItemClass:
+             // add the context menu actions
+             _contextMenu->addAction(_newFolderAction);
+@@ -611,8 +533,11 @@
+             }
+             _w->setFolder(fi->name());
+             _deleteFolderAction->setEnabled(true);
++            _contextMenu->addAction(_newEntryAction);
++            _newEntryAction->setEnabled(true);
+             _entryName->clear();
+             _entryStack->setCurrentIndex(0);
++            showContent(0);
+             break;
+ 
+         default:
+@@ -648,7 +573,7 @@
+     if (!fi) {
+         return;
+     }
+-
++/*
+     KWalletContainerItem *pi = fi->getContainer(KWallet::Wallet::Password);
+     KWalletContainerItem *mi = fi->getContainer(KWallet::Wallet::Map);
+     KWalletContainerItem *bi = fi->getContainer(KWallet::Wallet::Stream);
+@@ -720,6 +645,7 @@
+             break;
+         }
+     }
++    */
+     fi->refresh();
+     if (fi->name() == _currentFolder) {
+         _entryTitle->setText(QStringLiteral("<font size=\"+1\">%1</font>").arg(fi->text(0)));
+@@ -752,85 +678,66 @@
+ 
+ void KWalletEditor::newEntry()
+ {
+-    QTreeWidgetItem *item = _entryList->currentItem();
+-    QString n;
+-    bool ok;
+ 
+-    KWalletFolderItem *fi;
+-
+-    //set the folder where we're trying to create the new entry
+-    if (_w && item) {
+-        QTreeWidgetItem *p = item;
+-        if (p->type() == KWalletEntryItemClass) {
+-            p = item->parent();
+-        }
+-        fi = dynamic_cast<KWalletFolderItem *>(p->parent());
+-        if (!fi) {
++    KWalletManagerInputEntry *dialog = new KWalletManagerInputEntry;
++    int result;
++    KWalletFolderItem *folder = dynamic_cast<KWalletFolderItem *>(_entryList->currentItem());
++    if(!folder)
++    {
++        KWalletEntryItem* item = dynamic_cast<KWalletEntryItem *>(_entryList->currentItem());
++        folder = dynamic_cast<KWalletFolderItem *>(item->parent());
++        if(!folder)
+             return;
+-        }
+-        _w->setFolder(fi->name());
+-    } else {
+-        return;
+     }
++    if(!_w)
++        return;
++
++    //set the folder where we're trying to create the new entry
++    _w->setFolder(folder->name());
+ 
+     do {
+-        n = QInputDialog::getText(this, i18n("New Entry"),
+-                                  i18n("Please choose a name for the new entry:"),
+-                                  QLineEdit::Normal, QString(),
+-                                  &ok);
+ 
+-        if (!ok) {
++        result = dialog->exec();
++        if (result == Reject) {
+             return;
+         }
+ 
+         // FIXME: prohibits the use of the subheadings
+-        if (fi->contains(n)) {
++        if (folder->contains(dialog->entryName())) {
+             int rc = KMessageBox::questionYesNo(this, i18n("Sorry, that entry already exists. Try again?"), QString(), KGuiItem(i18n("Try Again")), KGuiItem(i18n("Do Not Try")));
+             if (rc == KMessageBox::Yes) {
+                 continue;
+             }
+-            n.clear();
+-        }
+-        break;
+-    } while (true);
+-
+-    if (_w && item && !n.isEmpty()) {
+-        QTreeWidgetItem *p = item;
+-        if (p->type() == KWalletEntryItemClass) {
+-            p = item->parent();
+         }
++    } while (result != Accept);
+ 
+-        KWalletFolderItem *fi = dynamic_cast<KWalletFolderItem *>(p->parent());
+-        if (!fi) {
+-            KMessageBox::error(this, i18n("An unexpected error occurred trying to add the new entry"));
+-            return;
+-        }
+-        _w->setFolder(fi->name());
+-
+-        KWalletEntryItem *ni = new KWalletEntryItem(_w, p, n);
+ 
+-        KWalletContainerItem *ci = dynamic_cast<KWalletContainerItem *>(p);
+-        if (!ci) {
+-            KMessageBox::error(this, i18n("An unexpected error occurred trying to add the new entry"));
+-            delete ni;
+-            return;
+-        }
+-        if (ci->entryType() == KWallet::Wallet::Password) {
+-            _w->writePassword(n, QString());
+-        } else if (ci->entryType() == KWallet::Wallet::Map) {
+-            _w->writeMap(n, QMap<QString, QString>());
+-        } else if (ci->entryType() == KWallet::Wallet::Stream) {
+-            _w->writeEntry(n, QByteArray());
+-        } else {
+-            abort();
+-        }
+-
+-        _entryList->setCurrentItem(ni);
+-        _entryList->scrollToItem(ni);
++    KWalletEntryItem *ni = new KWalletEntryItem(_w, folder, dialog->entryName());
+ 
+-        fi->refresh();
+-        _entryTitle->setText(QStringLiteral("<font size=\"+1\">%1</font>").arg(fi->text(0)));
++    switch (dialog->entryType())
++    {
++    case KWallet::Wallet::Password:
++        _w->writePassword(dialog->entryName(), QString());
++        break;
++    case KWallet::Wallet::Map:
++        _w->writeMap(dialog->entryName(), QMap<QString, QString>());
++        break;
++    case KWallet::Wallet::Stream:
++    {
++        QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), QDir::home().absolutePath(), tr("All Files"));
++        QFile fileBinary(fileName);
++        fileBinary.open(QIODevice::ReadOnly);
++        _w->writeEntry(dialog->entryName(), fileBinary.readAll());
++        break;
+     }
++    default:
++        abort();
++    }
++
++    _entryList->setCurrentItem(ni);
++    _entryList->scrollToItem(ni);
++    folder->refresh();
++    _entryTitle->setText(QStringLiteral("<font size=\"+1\">%1</font>").arg(folder->text(0)));
+ }
+ 
+ void KWalletEditor::renameEntry()
+@@ -861,16 +768,20 @@
+ 
+         if (_w->renameEntry(i->name(), t) == 0) {
+             i->setName(t);
++
++            /*
+             KWalletContainerItem *ci = dynamic_cast<KWalletContainerItem *>(item->parent());
+             if (!ci) {
+                 KMessageBox::error(this, i18n("An unexpected error occurred trying to rename the entry"));
+                 return;
+             }
+-            if (ci->entryType() == KWallet::Wallet::Password) {
++            */
++
++            if (_w->entryType(item->text(0)) == KWallet::Wallet::Password) {
+                 _entryName->setText(i18n("Password: %1", item->text(0)));
+-            } else if (ci->entryType() == KWallet::Wallet::Map) {
++            } else if (_w->entryType(item->text(0)) == KWallet::Wallet::Map) {
+                 _entryName->setText(i18n("Name-Value Map: %1", item->text(0)));
+-            } else if (ci->entryType() == KWallet::Wallet::Stream) {
++            } else if (_w->entryType(item->text(0)) == KWallet::Wallet::Stream) {
+                 _entryName->setText(i18n("Binary Data: %1", item->text(0)));
+             }
+         } else {
+@@ -920,22 +831,29 @@
+     }
+ }
+ 
+-void KWalletEditor::hidePasswordContents()
+-{
+-    _entryStack->setCurrentIndex(4);
+-}
+ 
+-void KWalletEditor::showPasswordContents()
+-{
+-    _entryStack->setCurrentIndex(1);
+-}
+-
+-void KWalletEditor::showHideMapEditorValue(bool show)
++void KWalletEditor::showContent(bool v) /* WARNING: isn't the best solution, but it works */
+ {
+-    if (show) {
+-        _mapEditor->showColumn(2);
+-    } else {
+-        _mapEditor->hideColumn(2);
++    _showCheckBox->setChecked(v);
++    switch(_entryStack->currentIndex())
++    {
++    case 0:
++        _showCheckBox->hide();
++        break;
++    case 1:
++        _showCheckBox->show();
++        v ? _passwordValue->show() : _passwordValue->hide();
++        break;
++    case 2:
++        _showCheckBox->show();
++        v ? _mapEditor->showColumn(2) : _mapEditor->hideColumn(2);
++        break;
++    case 3:
++        _showCheckBox->show();
++        v ? _binaryView->show() : _binaryView->hide();
++        break;
++    default:
++        break;
+     }
+ }
+ 
+@@ -1233,9 +1151,6 @@
+                 }
+                 break;
+             }
+-            case KWallet::Wallet::Unknown:
+-            default:
+-                break;
+             }
+         }
+         xml.writeEndElement();
+@@ -1306,22 +1221,6 @@
+     QTimer::singleShot(300, _entryList, &KWalletEntryList::refreshItemsCount);
+ }
+ 
+-void KWalletEditor::onAlwaysShowContents(bool checked)
+-{
+-    _alwaysShowContents = checked;
+-    _alwaysHideContentsAction->setChecked(!_alwaysShowContents);
+-    showPasswordContents();
+-}
+-
+-void KWalletEditor::onAlwaysHideContents(bool checked)
+-{
+-    _alwaysShowContents = !checked;
+-    _alwaysShowContentsAction->setChecked(_alwaysShowContents);
+-    if (checked) {
+-        hidePasswordContents();
+-    }
+-}
+-
+ bool KWalletEditor::hasUnsavedChanges() const
+ {
+     return _hasUnsavedChanges;
+diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/kwalleteditor.h /home/luca/Progetti/kwalletmanager/git/src/manager/kwalleteditor.h
+--- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/kwalleteditor.h	2018-08-25 08:53:08.278142632 +0200
++++ /home/luca/Progetti/kwalletmanager/git/src/manager/kwalleteditor.h	2018-08-25 08:37:34.101744484 +0200
+@@ -27,6 +27,7 @@
+ #include <kxmlguiwindow.h>
+ #include "registercreateactionmethod.h"
+ #include <QLabel>
++#include <QPushButton>
+ 
+ class KActionCollection;
+ class QMenu;
+@@ -76,9 +77,7 @@
+     void changePassword();
+ 
+     void walletOpened(bool success);
+-    void hidePasswordContents();
+-    void showPasswordContents();
+-    void showHideMapEditorValue(bool show);
++    void showContent(bool v);
+ 
+     void exportXML();
+     void importXML();
+@@ -87,8 +86,6 @@
+     void copyPassword();
+ 
+     void onSearchTextChanged(const QString &);
+-    void onAlwaysShowContents(bool);
+-    void onAlwaysHideContents(bool);
+ 
+ signals:
+     void enableWalletActions(bool enable);
+@@ -114,10 +111,8 @@
+     static QAction *_copyPassAction;
+     QLabel *_details;
+     QString _currentFolder;
+-    QMap<QString, QString> _currentMap; // save memory by storing
+-    // only the most recent map.
+-    KWMapEditor *_mapEditor;
+-    QCheckBox *_mapEditorShowHide;
++    QMap<QString, QString> *_currentMap; // get memory by pointer
++	QPushButton* _genPassword;
+     bool _newWallet;
+     QMenu *_contextMenu;
+     QTreeWidgetItem *_displayedItem; // used to find old item when selection just changed
+@@ -125,8 +120,7 @@
+     QMenu *_controlMenu;
+     QMenu *_walletSubmenu;
+     KTreeWidgetSearchLine *_searchLine;
+-    static QAction *_alwaysShowContentsAction, *_alwaysHideContentsAction;
+-    bool _alwaysShowContents;
++    bool _showContent;
+     bool _hasUnsavedChanges;
+ };
+ 
+diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/kwalletmanager.cpp /home/luca/Progetti/kwalletmanager/git/src/manager/kwalletmanager.cpp
+--- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/kwalletmanager.cpp	2018-08-25 08:53:08.278142632 +0200
++++ /home/luca/Progetti/kwalletmanager/git/src/manager/kwalletmanager.cpp	2018-08-23 08:20:58.568793087 +0200
+@@ -41,7 +41,6 @@
+ #include <kconfiggroup.h>
+ #include <KTar>
+ 
+-
+ #include <QRegExp>
+ #include <QRegExpValidator>
+ #include <QTimer>
+diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/kwalletmanager.h /home/luca/Progetti/kwalletmanager/git/src/manager/kwalletmanager.h
+--- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/kwalletmanager.h	2018-08-25 08:53:08.278142632 +0200
++++ /home/luca/Progetti/kwalletmanager/git/src/manager/kwalletmanager.h	2018-08-23 08:20:58.578792925 +0200
+@@ -21,6 +21,7 @@
+ #define KWALLETMANAGER_H
+ #include <QObject>
+ #include <kxmlguiwindow.h>
++#include <QPushButton>
+ 
+ class KWalletManagerWidget;
+ class KStatusNotifierItem;
+diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/kwalletmanagerinputentry.cpp /home/luca/Progetti/kwalletmanager/git/src/manager/kwalletmanagerinputentry.cpp
+--- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/kwalletmanagerinputentry.cpp	1970-01-01 01:00:00.000000000 +0100
++++ /home/luca/Progetti/kwalletmanager/git/src/manager/kwalletmanagerinputentry.cpp	2018-08-23 03:46:33.546559768 +0200
+@@ -0,0 +1,41 @@
++#include "kwalletmanagerinputentry.h"
++#include "ui_kwalletmanagerinputentry.h"
++#include <QComboBox>
++#include <QLineEdit>
++
++KWalletManagerInputEntry::KWalletManagerInputEntry(QWidget *parent) :
++	QDialog(parent),
++	ui(new Ui::KWalletManagerInputEntry)
++{
++	ui->setupUi(this);
++}
++
++KWalletManagerInputEntry::~KWalletManagerInputEntry()
++{
++	delete ui;
++}
++
++void KWalletManagerInputEntry::on_buttonBox_accepted()
++{
++	switch(ui->comboBox->currentIndex()) {
++	case 0:
++		type = KWallet::Wallet::Password;
++		break;
++	case 1:
++		type = KWallet::Wallet::Map;
++		break;
++	case 2:
++		type = type = KWallet::Wallet::Stream;
++		break;
++	}
++	if(ui->lineEdit->text().isEmpty())
++		setResult(Error);
++	else
++		name = ui->lineEdit->text();
++	setResult(Accept);
++}
++
++void KWalletManagerInputEntry::on_buttonBox_rejected()
++{
++	setResult(Reject);
++}
+diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/kwalletmanagerinputentry.h /home/luca/Progetti/kwalletmanager/git/src/manager/kwalletmanagerinputentry.h
+--- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/kwalletmanagerinputentry.h	1970-01-01 01:00:00.000000000 +0100
++++ /home/luca/Progetti/kwalletmanager/git/src/manager/kwalletmanagerinputentry.h	2018-08-23 06:23:15.411410912 +0200
+@@ -0,0 +1,34 @@
++#ifndef KWALLETMANAGERINPUTENTRY_H
++#define KWALLETMANAGERINPUTENTRY_H
++
++#include <QDialog>
++#include <kwallet.h>
++
++namespace Ui {
++class KWalletManagerInputEntry;
++}
++
++enum KWalletManagerInputResult {Reject = QDialog::Rejected, Accept = QDialog::Accepted, Error};
++
++class KWalletManagerInputEntry : public QDialog
++{
++	Q_OBJECT
++
++public:
++    KWalletManagerInputEntry(QWidget *parent = 0);
++	~KWalletManagerInputEntry();
++
++    KWallet::Wallet::EntryType entryType() const { return type; }
++    QString entryName() const { return name; }
++private slots:
++    void on_buttonBox_accepted();
++
++    void on_buttonBox_rejected();
++
++private:
++	Ui::KWalletManagerInputEntry *ui;
++        KWallet::Wallet::EntryType type;
++        QString name;
++};
++
++#endif // KWALLETMANAGERINPUTENTRY_H
+diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/kwalletmanagerinputentry.ui /home/luca/Progetti/kwalletmanager/git/src/manager/kwalletmanagerinputentry.ui
+--- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/kwalletmanagerinputentry.ui	1970-01-01 01:00:00.000000000 +0100
++++ /home/luca/Progetti/kwalletmanager/git/src/manager/kwalletmanagerinputentry.ui	2018-08-23 03:46:33.546559768 +0200
+@@ -0,0 +1,127 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<ui version="4.0">
++ <class>KWalletManagerInputEntry</class>
++ <widget class="QDialog" name="KWalletManagerInputEntry">
++  <property name="geometry">
++   <rect>
++    <x>0</x>
++    <y>0</y>
++    <width>400</width>
++    <height>300</height>
++   </rect>
++  </property>
++  <property name="windowTitle">
++   <string>New Entry...</string>
++  </property>
++  <layout class="QVBoxLayout" name="verticalLayout">
++   <item>
++    <widget class="QLabel" name="label_2">
++     <property name="minimumSize">
++      <size>
++       <width>0</width>
++       <height>0</height>
++      </size>
++     </property>
++     <property name="maximumSize">
++      <size>
++       <width>16777215</width>
++       <height>15</height>
++      </size>
++     </property>
++     <property name="layoutDirection">
++      <enum>Qt::LeftToRight</enum>
++     </property>
++     <property name="text">
++      <string>Please choose a type for the new entry:</string>
++     </property>
++     <property name="alignment">
++      <set>Qt::AlignCenter</set>
++     </property>
++    </widget>
++   </item>
++   <item>
++    <widget class="QComboBox" name="comboBox">
++     <item>
++      <property name="text">
++       <string>Password</string>
++      </property>
++     </item>
++     <item>
++      <property name="text">
++       <string>Name-Value</string>
++      </property>
++     </item>
++     <item>
++      <property name="text">
++       <string>Binary Data</string>
++      </property>
++     </item>
++    </widget>
++   </item>
++   <item>
++    <widget class="QLabel" name="label">
++     <property name="maximumSize">
++      <size>
++       <width>16777215</width>
++       <height>15</height>
++      </size>
++     </property>
++     <property name="text">
++      <string>Please choose a name for the new entry:</string>
++     </property>
++     <property name="alignment">
++      <set>Qt::AlignCenter</set>
++     </property>
++    </widget>
++   </item>
++   <item>
++    <widget class="QLineEdit" name="lineEdit"/>
++   </item>
++   <item>
++    <widget class="QDialogButtonBox" name="buttonBox">
++     <property name="orientation">
++      <enum>Qt::Horizontal</enum>
++     </property>
++     <property name="standardButtons">
++      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
++     </property>
++    </widget>
++   </item>
++  </layout>
++ </widget>
++ <resources/>
++ <connections>
++  <connection>
++   <sender>buttonBox</sender>
++   <signal>accepted()</signal>
++   <receiver>KWalletManagerInputEntry</receiver>
++   <slot>accept()</slot>
++   <hints>
++    <hint type="sourcelabel">
++     <x>248</x>
++     <y>254</y>
++    </hint>
++    <hint type="destinationlabel">
++     <x>157</x>
++     <y>274</y>
++    </hint>
++   </hints>
++  </connection>
++  <connection>
++   <sender>buttonBox</sender>
++   <signal>rejected()</signal>
++   <receiver>KWalletManagerInputEntry</receiver>
++   <slot>reject()</slot>
++   <hints>
++    <hint type="sourcelabel">
++     <x>316</x>
++     <y>260</y>
++    </hint>
++    <hint type="destinationlabel">
++     <x>286</x>
++     <y>274</y>
++    </hint>
++   </hints>
++  </connection>
++ </connections>
++</ui>
+diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/kwalletmanagerwidget.cpp /home/luca/Progetti/kwalletmanager/git/src/manager/kwalletmanagerwidget.cpp
+--- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/kwalletmanagerwidget.cpp	2018-08-25 08:53:08.278142632 +0200
++++ /home/luca/Progetti/kwalletmanager/git/src/manager/kwalletmanagerwidget.cpp	2018-08-23 08:02:01.502399551 +0200
+@@ -35,19 +35,12 @@
+ {
+     setFaceType(Auto);
+     setAcceptDrops(true);
+-
+-    connect(this, &KWalletManagerWidget::currentPageChanged, this, &KWalletManagerWidget::onCurrentPageChanged);
+ }
+ 
+ KWalletManagerWidget::~KWalletManagerWidget()
+ {
+ 
+ }
+-
+-void KWalletManagerWidget::onCurrentPageChanged(KPageWidgetItem *current, KPageWidgetItem *before)
+-{
+-
+-}
+ 
+ void KWalletManagerWidget::updateWalletDisplay(QString selectWallet /* = QString() */)
+ {
+diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/kwalletmanagerwidget.h /home/luca/Progetti/kwalletmanager/git/src/manager/kwalletmanagerwidget.h
+--- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/kwalletmanagerwidget.h	2018-08-25 08:53:08.278142632 +0200
++++ /home/luca/Progetti/kwalletmanager/git/src/manager/kwalletmanagerwidget.h	2018-08-23 08:20:58.575459646 +0200
+@@ -48,14 +48,12 @@
+     void dragMoveEvent(QDragMoveEvent *e) override;
+     void dropEvent(QDropEvent *e) override;
+ 
+-private Q_SLOTS:
+-    void onCurrentPageChanged(KPageWidgetItem *, KPageWidgetItem *);
+-
+ private:
+     bool shouldIgnoreDropEvent(const QDropEvent *e, QUrl *u) const;
+ 
+     typedef QHash<QString, KWalletManagerWidgetItem *> WalletPagesHash;
+     WalletPagesHash _walletPages;
++    static KWalletManagerWidgetItem* newWallet;
+ };
+ 
+ #endif // KWALLETMANAGERWIDGET_H
+diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/kwmapeditor.cpp /home/luca/Progetti/kwalletmanager/git/src/manager/kwmapeditor.cpp
+--- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/kwmapeditor.cpp	2018-08-25 08:53:08.278142632 +0200
++++ /home/luca/Progetti/kwalletmanager/git/src/manager/kwmapeditor.cpp	2018-08-25 07:18:20.904032107 +0200
+@@ -130,7 +130,22 @@
+     }
+ };
+ 
+-KWMapEditor::KWMapEditor(QMap<QString, QString> &map, QWidget *parent)
++KWMapEditor::KWMapEditor(QWidget *parent)
++    : QTableWidget(0, 3, parent)
++{
++    _map = new QMap<QString, QString>();
++    setItemDelegate(new KWMapEditorDelegate(this));
++    _ac = new KActionCollection(this);
++    _copyAct = KStandardAction::copy(this, SLOT(copy()), _ac);
++    connect(this, &KWMapEditor::itemChanged, this, &KWMapEditor::dirty);
++    connect(this, &KWMapEditor::customContextMenuRequested, this, &KWMapEditor::contextMenu);
++    setSelectionMode(NoSelection);
++    setHorizontalHeaderLabels(QStringList() << QString() << i18n("Key") << i18n("Value"));
++    setContextMenuPolicy(Qt::CustomContextMenu);
++    reload();
++}
++
++KWMapEditor::KWMapEditor(QMap<QString, QString> *map, QWidget *parent)
+     : QTableWidget(0, 3, parent), _map(map)
+ {
+     setItemDelegate(new KWMapEditorDelegate(this));
+@@ -144,16 +159,18 @@
+     reload();
+ }
+ 
++QMap<QString, QString> *KWMapEditor::currentMap() { return _map; }
++
+ void KWMapEditor::reload()
+ {
+     int row = 0;
+ 
+-    while ((row = rowCount()) > _map.count()) {
++    while ((row = rowCount()) > _map->count()) {
+         removeRow(row - 1);
+     }
+ 
+-    if ((row = rowCount()) < _map.count()) {
+-        setRowCount(_map.count());
++    if ((row = rowCount()) < _map->count()) {
++        setRowCount(_map->count());
+         for (int x = row; x < rowCount(); ++x) {
+             QToolButton *b = new QToolButton(this);
+             b->setIcon(QIcon::fromTheme(QStringLiteral("edit-delete")));
+@@ -169,7 +186,7 @@
+     }
+ 
+     row = 0;
+-    for (QMap<QString, QString>::Iterator it = _map.begin(), end = _map.end(); it != end; ++it) {
++    for (QMap<QString, QString>::Iterator it = _map->begin(), end = _map->end(); it != end; ++it) {
+         item(row, 1)->setText(it.key());
+         item(row, 2)->setText(it.value());
+         row++;
+@@ -195,10 +212,10 @@
+ 
+ void KWMapEditor::saveMap()
+ {
+-    _map.clear();
++    _map->clear();
+ 
+     for (int i = 0; i < rowCount(); i++) {
+-        _map[item(i, 1)->text()] = item(i, 2)->text();
++        (*_map)[item(i, 1)->text()] = item(i, 2)->text();
+     }
+ }
+ 
+diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/kwmapeditor.h /home/luca/Progetti/kwalletmanager/git/src/manager/kwmapeditor.h
+--- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/kwmapeditor.h	2018-08-25 08:53:08.278142632 +0200
++++ /home/luca/Progetti/kwalletmanager/git/src/manager/kwmapeditor.h	2018-08-25 07:18:20.890698898 +0200
+@@ -31,9 +31,12 @@
+     Q_OBJECT
+ 
+ public:
+-    explicit KWMapEditor(QMap<QString, QString> &map, QWidget *parent = nullptr);
++    explicit KWMapEditor(QWidget *parent = nullptr);
++    explicit KWMapEditor(QMap<QString, QString> *map, QWidget *parent = nullptr);
+     virtual ~KWMapEditor();
+ 
++    QMap<QString, QString> *currentMap();
++
+ public slots:
+     void reload();
+     void saveMap();
+@@ -49,7 +52,7 @@
+     void dirty();
+ 
+ private:
+-    QMap<QString, QString> &_map;
++    QMap<QString, QString> *_map;
+     int _contextRow;
+     KActionCollection *_ac;
+     QAction *_copyAct;
+diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/main.cpp /home/luca/Progetti/kwalletmanager/git/src/manager/main.cpp
+--- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/main.cpp	2018-08-25 08:53:08.278142632 +0200
++++ /home/luca/Progetti/kwalletmanager/git/src/manager/main.cpp	2018-08-23 05:26:49.000000000 +0200
+@@ -51,10 +51,13 @@
+                  QStringLiteral(KWALLETMANAGER_VERSION_STRING),
+                  i18n("KDE Wallet Management Tool"),
+                  KAboutLicense::GPL,
+-                 i18n("Copyright Â©2013â2017, KWallet Manager authors"),
++                 i18n("Copyright ÃÂ©2013Ã¢ÂÂ2017, KWallet Manager authors"),
+                  QString(),
+                  QStringLiteral("http://utils.kde.org/projects/kwalletmanager"));
+ 
++	aboutData.addAuthor(i18n("Luca Gasperini"),
++						i18n("Developer, user interface refactoring"),
++						QStringLiteral("info@xsoftware.eu"));
+     aboutData.addAuthor(i18n("Valentin Rusu"),
+                         i18n("Maintainer, user interface refactoring"),
+                         QStringLiteral("kde@rusu.info"));
+diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/walletcontrolwidget.cpp /home/luca/Progetti/kwalletmanager/git/src/manager/walletcontrolwidget.cpp
+--- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/walletcontrolwidget.cpp	2018-08-25 08:53:08.278142632 +0200
++++ /home/luca/Progetti/kwalletmanager/git/src/manager/walletcontrolwidget.cpp	2018-08-23 05:34:50.860655182 +0200
+@@ -21,6 +21,7 @@
+ #include "kwalleteditor.h"
+ #include "applicationsmanager.h"
+ #include "kwalletmanager_debug.h"
++#include "wingenerate.h"
+ 
+ #include <klocalizedstring.h>
+ #include <kmessagebox.h>
+@@ -183,4 +184,23 @@
+ {
+ }
+ 
++void WalletControlWidget::onRemoveWallet() //REPEATED
++{
++	if (_walletName.isEmpty()) {
++		return;
++	}
++	int rc = KMessageBox::warningContinueCancel(this, i18n("Are you sure you wish to delete the wallet '%1'?", _walletName), QString(), KStandardGuiItem::del());
++	if (rc != KMessageBox::Continue) {
++		return;
++	}
++	rc = KWallet::Wallet::deleteWallet(_walletName);
++	if (rc != 0) {
++		KMessageBox::sorry(this, i18n("Unable to delete the wallet. Error code was %1.", rc));
++	}
++}
+ 
++void WalletControlWidget::onGeneratePassword()
++{
++	winGenerate* win = new winGenerate(this);
++	win->show();
++}
+diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/walletcontrolwidget.h /home/luca/Progetti/kwalletmanager/git/src/manager/walletcontrolwidget.h
+--- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/walletcontrolwidget.h	2018-08-25 08:53:08.278142632 +0200
++++ /home/luca/Progetti/kwalletmanager/git/src/manager/walletcontrolwidget.h	2018-08-23 05:26:50.000000000 +0200
+@@ -45,6 +45,8 @@
+     void updateWalletDisplay();
+     void onDisconnectApplication();
+     void onChangePassword();
++	void onRemoveWallet();
++	void onGeneratePassword();
+ 
+ protected:
+     void hideEvent(QHideEvent *) override;
+diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/walletcontrolwidget.ui /home/luca/Progetti/kwalletmanager/git/src/manager/walletcontrolwidget.ui
+--- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/walletcontrolwidget.ui	2018-08-25 08:53:08.278142632 +0200
++++ /home/luca/Progetti/kwalletmanager/git/src/manager/walletcontrolwidget.ui	2018-08-23 03:46:33.546559768 +0200
+@@ -11,7 +11,16 @@
+    </rect>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout_2">
+-   <property name="margin">
++   <property name="leftMargin">
++    <number>0</number>
++   </property>
++   <property name="topMargin">
++    <number>0</number>
++   </property>
++   <property name="rightMargin">
++    <number>0</number>
++   </property>
++   <property name="bottomMargin">
+     <number>0</number>
+    </property>
+    <item>
+@@ -53,10 +62,35 @@
+       </spacer>
+      </item>
+      <item>
++      <widget class="QPushButton" name="pushButton">
++       <property name="text">
++        <string>Generate Password</string>
++       </property>
++       <property name="icon">
++        <iconset theme="password-generate"/>
++       </property>
++      </widget>
++     </item>
++     <item>
+       <widget class="QPushButton" name="_changePassword">
+        <property name="text">
+         <string>Change Password...</string>
+        </property>
++       <property name="icon">
++        <iconset theme="password-copy">
++         <normaloff>.</normaloff>.</iconset>
++       </property>
++      </widget>
++     </item>
++     <item>
++      <widget class="QPushButton" name="_removeWallet">
++       <property name="text">
++        <string>&amp;Delete Wallet...</string>
++       </property>
++       <property name="icon">
++        <iconset theme="delete">
++         <normaloff>.</normaloff>.</iconset>
++       </property>
+       </widget>
+      </item>
+     </layout>
+@@ -69,14 +103,22 @@
+      <widget class="QWidget" name="_contentsTab">
+       <attribute name="icon">
+        <iconset theme="wallet-closed">
+-        <normaloff/>
+-       </iconset>
++        <normaloff>.</normaloff>.</iconset>
+       </attribute>
+       <attribute name="title">
+        <string>Contents</string>
+       </attribute>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+-       <property name="margin">
++       <property name="leftMargin">
++        <number>0</number>
++       </property>
++       <property name="topMargin">
++        <number>0</number>
++       </property>
++       <property name="rightMargin">
++        <number>0</number>
++       </property>
++       <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+@@ -97,7 +139,16 @@
+           <number>0</number>
+          </property>
+          <layout class="QVBoxLayout" name="_editorFrameLayout">
+-          <property name="margin">
++          <property name="leftMargin">
++           <number>0</number>
++          </property>
++          <property name="topMargin">
++           <number>0</number>
++          </property>
++          <property name="rightMargin">
++           <number>0</number>
++          </property>
++          <property name="bottomMargin">
+            <number>0</number>
+           </property>
+          </layout>
+@@ -108,14 +159,22 @@
+      <widget class="QWidget" name="_appsTab">
+       <attribute name="icon">
+        <iconset theme="start-here-kde">
+-        <normaloff/>
+-       </iconset>
++        <normaloff>.</normaloff>.</iconset>
+       </attribute>
+       <attribute name="title">
+        <string>Applications</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout">
+-       <property name="margin">
++       <property name="leftMargin">
++        <number>0</number>
++       </property>
++       <property name="topMargin">
++        <number>0</number>
++       </property>
++       <property name="rightMargin">
++        <number>0</number>
++       </property>
++       <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+@@ -130,7 +189,16 @@
+           <number>0</number>
+          </property>
+          <layout class="QVBoxLayout" name="_applicationsFrameLayout">
+-          <property name="margin">
++          <property name="leftMargin">
++           <number>0</number>
++          </property>
++          <property name="topMargin">
++           <number>0</number>
++          </property>
++          <property name="rightMargin">
++           <number>0</number>
++          </property>
++          <property name="bottomMargin">
+            <number>0</number>
+           </property>
+          </layout>
+@@ -163,8 +231,8 @@
+    <slot>onOpenClose()</slot>
+    <hints>
+     <hint type="sourcelabel">
+-     <x>258</x>
+-     <y>22</y>
++     <x>216</x>
++     <y>24</y>
+     </hint>
+     <hint type="destinationlabel">
+      <x>10</x>
+@@ -179,8 +247,8 @@
+    <slot>onChangePassword()</slot>
+    <hints>
+     <hint type="sourcelabel">
+-     <x>349</x>
+-     <y>16</y>
++     <x>564</x>
++     <y>17</y>
+     </hint>
+     <hint type="destinationlabel">
+      <x>301</x>
+@@ -188,9 +256,43 @@
+     </hint>
+    </hints>
+   </connection>
++  <connection>
++   <sender>_removeWallet</sender>
++   <signal>clicked()</signal>
++   <receiver>WalletControlWidget</receiver>
++   <slot>onRemoveWallet()</slot>
++   <hints>
++    <hint type="sourcelabel">
++     <x>616</x>
++     <y>16</y>
++    </hint>
++    <hint type="destinationlabel">
++     <x>671</x>
++     <y>710</y>
++    </hint>
++   </hints>
++  </connection>
++  <connection>
++   <sender>pushButton</sender>
++   <signal>clicked()</signal>
++   <receiver>WalletControlWidget</receiver>
++   <slot>onGeneratePassword()</slot>
++   <hints>
++    <hint type="sourcelabel">
++     <x>303</x>
++     <y>19</y>
++    </hint>
++    <hint type="destinationlabel">
++     <x>-4</x>
++     <y>420</y>
++    </hint>
++   </hints>
++  </connection>
+  </connections>
+  <slots>
+   <slot>onOpenClose()</slot>
+   <slot>onChangePassword()</slot>
++  <slot>onRemoveWallet()</slot>
++  <slot>onGeneratePassword()</slot>
+  </slots>
+ </ui>
+diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/walletwidget.ui /home/luca/Progetti/kwalletmanager/git/src/manager/walletwidget.ui
+--- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/walletwidget.ui	2018-08-25 08:53:08.278142632 +0200
++++ /home/luca/Progetti/kwalletmanager/git/src/manager/walletwidget.ui	2018-08-25 07:48:49.545007020 +0200
+@@ -50,12 +50,30 @@
+      </widget>
+      <widget class="QWidget" name="layout3">
+       <layout class="QVBoxLayout" name="verticalLayout_4">
+-       <property name="margin">
++       <property name="leftMargin">
++        <number>0</number>
++       </property>
++       <property name="topMargin">
++        <number>0</number>
++       </property>
++       <property name="rightMargin">
++        <number>0</number>
++       </property>
++       <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <layout class="QHBoxLayout">
+-         <property name="margin">
++         <property name="leftMargin">
++          <number>0</number>
++         </property>
++         <property name="topMargin">
++          <number>0</number>
++         </property>
++         <property name="rightMargin">
++          <number>0</number>
++         </property>
++         <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+@@ -118,6 +136,16 @@
+         </widget>
+        </item>
+        <item>
++        <widget class="QCheckBox" name="_showCheckBox">
++         <property name="text">
++          <string>Show &amp;Contents</string>
++         </property>
++         <property name="checked">
++          <bool>true</bool>
++         </property>
++        </widget>
++       </item>
++       <item>
+         <widget class="QStackedWidget" name="_entryStack">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+@@ -126,47 +154,11 @@
+           </sizepolicy>
+          </property>
+          <property name="currentIndex">
+-          <number>0</number>
++          <number>3</number>
+          </property>
+          <widget class="QWidget" name="page1"/>
+          <widget class="QWidget" name="page2">
+           <layout class="QVBoxLayout" name="verticalLayout_3">
+-           <property name="margin">
+-            <number>0</number>
+-           </property>
+-           <item>
+-            <layout class="QHBoxLayout" name="horizontalLayout_3">
+-             <item>
+-              <widget class="QToolButton" name="_hideContents">
+-               <property name="text">
+-                <string>Hide &amp;Contents</string>
+-               </property>
+-               <property name="popupMode">
+-                <enum>QToolButton::DelayedPopup</enum>
+-               </property>
+-               <property name="toolButtonStyle">
+-                <enum>Qt::ToolButtonTextOnly</enum>
+-               </property>
+-               <property name="arrowType">
+-                <enum>Qt::DownArrow</enum>
+-               </property>
+-              </widget>
+-             </item>
+-             <item>
+-              <spacer name="horizontalSpacer_5">
+-               <property name="orientation">
+-                <enum>Qt::Horizontal</enum>
+-               </property>
+-               <property name="sizeHint" stdset="0">
+-                <size>
+-                 <width>40</width>
+-                 <height>20</height>
+-                </size>
+-               </property>
+-              </spacer>
+-             </item>
+-            </layout>
+-           </item>
+            <item>
+             <widget class="QTextEdit" name="_passwordValue">
+              <property name="font">
+@@ -181,19 +173,15 @@
+            </item>
+           </layout>
+          </widget>
+-         <widget class="QWidget" name="page3"/>
+-         <widget class="QWidget" name="binaryPage">
+-          <layout class="QVBoxLayout" name="verticalLayout">
++         <widget class="QWidget" name="page3">
++          <layout class="QVBoxLayout" name="verticalLayout_5">
+            <item>
+-            <widget class="QCheckBox" name="_binaryViewShow">
+-             <property name="text">
+-              <string>Show &amp;Contents</string>
+-             </property>
+-             <property name="checked">
+-              <bool>true</bool>
+-             </property>
+-            </widget>
++            <widget class="KWMapEditor" name="_mapEditor" native="true"/>
+            </item>
++          </layout>
++         </widget>
++         <widget class="QWidget" name="binaryPage">
++          <layout class="QVBoxLayout" name="verticalLayout">
+            <item>
+             <widget class="KWHexView" name="_binaryView">
+              <property name="sizePolicy">
+@@ -227,52 +215,18 @@
+          </widget>
+          <widget class="QWidget" name="page_2">
+           <layout class="QVBoxLayout" name="verticalLayout_2">
+-           <property name="margin">
++           <property name="leftMargin">
++            <number>0</number>
++           </property>
++           <property name="topMargin">
++            <number>0</number>
++           </property>
++           <property name="rightMargin">
++            <number>0</number>
++           </property>
++           <property name="bottomMargin">
+             <number>0</number>
+            </property>
+-           <item>
+-            <layout class="QHBoxLayout" name="horizontalLayout_2">
+-             <item>
+-              <widget class="QToolButton" name="_showContents">
+-               <property name="text">
+-                <string>Show &amp;Contents</string>
+-               </property>
+-               <property name="toolButtonStyle">
+-                <enum>Qt::ToolButtonFollowStyle</enum>
+-               </property>
+-               <property name="arrowType">
+-                <enum>Qt::NoArrow</enum>
+-               </property>
+-              </widget>
+-             </item>
+-             <item>
+-              <spacer name="horizontalSpacer_4">
+-               <property name="orientation">
+-                <enum>Qt::Horizontal</enum>
+-               </property>
+-               <property name="sizeHint" stdset="0">
+-                <size>
+-                 <width>40</width>
+-                 <height>20</height>
+-                </size>
+-               </property>
+-              </spacer>
+-             </item>
+-            </layout>
+-           </item>
+-           <item>
+-            <spacer name="verticalSpacer_3">
+-             <property name="orientation">
+-              <enum>Qt::Vertical</enum>
+-             </property>
+-             <property name="sizeHint" stdset="0">
+-              <size>
+-               <width>20</width>
+-               <height>40</height>
+-              </size>
+-             </property>
+-            </spacer>
+-           </item>
+           </layout>
+          </widget>
+         </widget>
+@@ -331,27 +285,16 @@
+    <extends>QPlainTextEdit</extends>
+    <header>kwhexview.h</header>
+   </customwidget>
++  <customwidget>
++   <class>KWMapEditor</class>
++   <extends>QWidget</extends>
++   <header>kwmapeditor.h</header>
++   <container>1</container>
++  </customwidget>
+  </customwidgets>
+  <includes>
+   <include location="global">kiconloader.h</include>
+  </includes>
+  <resources/>
+- <connections>
+-  <connection>
+-   <sender>_binaryViewShow</sender>
+-   <signal>toggled(bool)</signal>
+-   <receiver>_binaryView</receiver>
+-   <slot>setVisible(bool)</slot>
+-   <hints>
+-    <hint type="sourcelabel">
+-     <x>224</x>
+-     <y>83</y>
+-    </hint>
+-    <hint type="destinationlabel">
+-     <x>237</x>
+-     <y>127</y>
+-    </hint>
+-   </hints>
+-  </connection>
+- </connections>
++ <connections/>
+ </ui>
+diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/wingenerate.cpp /home/luca/Progetti/kwalletmanager/git/src/manager/wingenerate.cpp
+--- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/wingenerate.cpp	1970-01-01 01:00:00.000000000 +0100
++++ /home/luca/Progetti/kwalletmanager/git/src/manager/wingenerate.cpp	2018-08-23 03:46:33.546559768 +0200
+@@ -0,0 +1,65 @@
++#include "wingenerate.h"
++#include "ui_wingenerate.h"
++#include <QCheckBox>
++
++#define MAX_UNICODE 65536
++#define MAX_ASCII 255
++
++winGenerate::winGenerate(QWidget *parent) :
++    QDialog(parent),
++    ui(new Ui::winGenerate)
++{
++    ui->setupUi(this);
++}
++
++winGenerate::~winGenerate()
++{
++    delete ui;
++}
++
++QString winGenerate::generatePassword(int length, bool symbols, bool spaces, bool unicode, bool numbers, bool lowers, bool uppers)
++{
++	QChar tmp;
++	QString offset;
++	bool pass = false;
++	srand(time(0));
++
++	while(offset.length() < length)
++	{
++		if(unicode)
++			tmp = (unsigned short)rand() % MAX_UNICODE;
++		else
++			tmp = (char)rand() % MAX_ASCII;
++		if(tmp.isUpper() && uppers)
++			pass = true;
++		else if(tmp.isLower() && lowers)
++			pass = true;
++		else if(tmp.isDigit() && numbers)
++			pass = true;
++		else if(tmp.isSpace() && spaces)
++			pass = true;
++		else if(tmp.isSymbol() && symbols)
++			pass = true;
++		else
++			pass = false;
++
++		if(pass)
++			offset.append(tmp);
++
++	}
++
++	return offset;
++}
++
++void winGenerate::on_pushGenerate_clicked() //TODO: lock button when working and show time elapsed
++{
++	ui->lineEdit->setText(generatePassword(ui->spinLength->value(), ui->checkSymb->isChecked(),
++                                               ui->checkSpaces->isChecked(),ui->checkUni->isChecked(),
++                                               ui->checkNum->isChecked(), ui->checkLowers->isChecked(),
++                                               ui->checkUppers->isChecked()));
++}
++
++void winGenerate::on_pushButton_clicked()
++{
++    destroy();
++}
+diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/wingenerate.h /home/luca/Progetti/kwalletmanager/git/src/manager/wingenerate.h
+--- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/wingenerate.h	1970-01-01 01:00:00.000000000 +0100
++++ /home/luca/Progetti/kwalletmanager/git/src/manager/wingenerate.h	2018-08-23 03:46:33.546559768 +0200
+@@ -0,0 +1,27 @@
++#ifndef WINGENERATE_H
++#define WINGENERATE_H
++
++#include <QDialog>
++
++namespace Ui {
++class winGenerate;
++}
++
++class  winGenerate : public QDialog
++{
++    Q_OBJECT
++
++public:
++    explicit winGenerate(QWidget *parent = 0);
++    ~winGenerate();
++    static QString generatePassword(int length, bool symbols, bool spaces, bool unicode, bool numbers, bool lowers, bool uppers);
++private slots:
++    void on_pushGenerate_clicked();
++
++    void on_pushButton_clicked();
++
++private:
++    Ui::winGenerate *ui;
++};
++
++#endif // WINGENERATE_H
+diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/wingenerate.ui /home/luca/Progetti/kwalletmanager/git/src/manager/wingenerate.ui
+--- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/wingenerate.ui	1970-01-01 01:00:00.000000000 +0100
++++ /home/luca/Progetti/kwalletmanager/git/src/manager/wingenerate.ui	2018-08-23 03:46:33.546559768 +0200
+@@ -0,0 +1,173 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<ui version="4.0">
++ <class>winGenerate</class>
++ <widget class="QDialog" name="winGenerate">
++  <property name="geometry">
++   <rect>
++    <x>0</x>
++    <y>0</y>
++    <width>424</width>
++    <height>290</height>
++   </rect>
++  </property>
++  <property name="windowTitle">
++   <string>Password Generator</string>
++  </property>
++  <property name="windowIcon">
++   <iconset>
++    <normaloff>:/xs/shield.png</normaloff>:/xs/shield.png</iconset>
++  </property>
++  <layout class="QVBoxLayout" name="verticalLayout">
++   <item>
++    <layout class="QGridLayout" name="gridLayout">
++     <item row="0" column="0">
++      <widget class="QLabel" name="labelInclude">
++       <property name="text">
++        <string>Include:</string>
++       </property>
++      </widget>
++     </item>
++     <item row="1" column="0">
++      <widget class="QCheckBox" name="checkSymb">
++       <property name="text">
++        <string>Symbols</string>
++       </property>
++      </widget>
++     </item>
++     <item row="1" column="1">
++      <widget class="QCheckBox" name="checkLowers">
++       <property name="text">
++        <string>Lowers</string>
++       </property>
++       <property name="checked">
++        <bool>true</bool>
++       </property>
++      </widget>
++     </item>
++     <item row="2" column="0">
++      <widget class="QCheckBox" name="checkSpaces">
++       <property name="text">
++        <string>Spaces</string>
++       </property>
++      </widget>
++     </item>
++     <item row="2" column="1">
++      <widget class="QCheckBox" name="checkUppers">
++       <property name="text">
++        <string>Uppers</string>
++       </property>
++       <property name="checked">
++        <bool>true</bool>
++       </property>
++      </widget>
++     </item>
++     <item row="3" column="0">
++      <widget class="QCheckBox" name="checkUni">
++       <property name="text">
++        <string>Unicode</string>
++       </property>
++      </widget>
++     </item>
++     <item row="3" column="1">
++      <widget class="QCheckBox" name="checkNum">
++       <property name="text">
++        <string>Numbers</string>
++       </property>
++       <property name="checked">
++        <bool>true</bool>
++       </property>
++      </widget>
++     </item>
++    </layout>
++   </item>
++   <item>
++    <widget class="QLabel" name="label">
++     <property name="text">
++      <string>Length:</string>
++     </property>
++    </widget>
++   </item>
++   <item>
++    <widget class="QSpinBox" name="spinLength">
++     <property name="minimum">
++      <number>1</number>
++     </property>
++     <property name="maximum">
++      <number>256</number>
++     </property>
++     <property name="value">
++      <number>8</number>
++     </property>
++    </widget>
++   </item>
++   <item>
++    <layout class="QHBoxLayout" name="horizontalLayout">
++     <item>
++      <widget class="QPushButton" name="pushGenerate">
++       <property name="minimumSize">
++        <size>
++         <width>44</width>
++         <height>44</height>
++        </size>
++       </property>
++       <property name="text">
++        <string/>
++       </property>
++       <property name="icon">
++        <iconset theme="password-generate">
++         <normaloff>.</normaloff>.</iconset>
++       </property>
++       <property name="iconSize">
++        <size>
++         <width>44</width>
++         <height>44</height>
++        </size>
++       </property>
++       <property name="flat">
++        <bool>true</bool>
++       </property>
++      </widget>
++     </item>
++     <item>
++      <widget class="QPushButton" name="pushButton">
++       <property name="minimumSize">
++        <size>
++         <width>44</width>
++         <height>44</height>
++        </size>
++       </property>
++       <property name="text">
++        <string/>
++       </property>
++       <property name="icon">
++        <iconset theme="application-exit">
++         <normaloff>.</normaloff>.</iconset>
++       </property>
++       <property name="iconSize">
++        <size>
++         <width>44</width>
++         <height>44</height>
++        </size>
++       </property>
++       <property name="flat">
++        <bool>true</bool>
++       </property>
++      </widget>
++     </item>
++    </layout>
++   </item>
++   <item>
++    <widget class="QLineEdit" name="lineEdit">
++     <property name="alignment">
++      <set>Qt::AlignCenter</set>
++     </property>
++     <property name="readOnly">
++      <bool>true</bool>
++     </property>
++    </widget>
++   </item>
++  </layout>
++ </widget>
++ <resources/>
++ <connections/>
++</ui>
