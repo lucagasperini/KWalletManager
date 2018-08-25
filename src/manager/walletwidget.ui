@@ -136,6 +136,16 @@
         </widget>
        </item>
        <item>
+        <widget class="QCheckBox" name="_showCheckBox">
+         <property name="text">
+          <string>Show &amp;Contents</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QStackedWidget" name="_entryStack">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -150,16 +160,6 @@
          <widget class="QWidget" name="page2">
           <layout class="QVBoxLayout" name="verticalLayout_3">
            <item>
-            <widget class="QCheckBox" name="_showPassword">
-             <property name="text">
-              <string>Show &amp;Contents</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
-           <item>
             <widget class="QTextEdit" name="_passwordValue">
              <property name="font">
               <font>
@@ -171,37 +171,17 @@
              </property>
             </widget>
            </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="page3">
+          <layout class="QVBoxLayout" name="verticalLayout_5">
            <item>
-            <spacer name="verticalSpacer_2">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeType">
-              <enum>QSizePolicy::Expanding</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>0</height>
-              </size>
-             </property>
-            </spacer>
+            <widget class="KWMapEditor" name="_mapEditor" native="true"/>
            </item>
           </layout>
          </widget>
-         <widget class="QWidget" name="page3"/>
          <widget class="QWidget" name="binaryPage">
           <layout class="QVBoxLayout" name="verticalLayout">
-           <item>
-            <widget class="QCheckBox" name="_showBinary">
-             <property name="text">
-              <string>Show &amp;Contents</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
            <item>
             <widget class="KWHexView" name="_binaryView">
              <property name="sizePolicy">
@@ -305,27 +285,16 @@
    <extends>QPlainTextEdit</extends>
    <header>kwhexview.h</header>
   </customwidget>
+  <customwidget>
+   <class>KWMapEditor</class>
+   <extends>QWidget</extends>
+   <header>kwmapeditor.h</header>
+   <container>1</container>
+  </customwidget>
  </customwidgets>
  <includes>
   <include location="global">kiconloader.h</include>
  </includes>
  <resources/>
- <connections>
-  <connection>
-   <sender>_showBinary</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>_binaryView</receiver>
-   <slot>setVisible(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>224</x>
-     <y>83</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>237</x>
-     <y>127</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

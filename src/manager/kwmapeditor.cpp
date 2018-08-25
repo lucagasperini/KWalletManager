@@ -130,7 +130,22 @@ public:
     }
 };
 
-KWMapEditor::KWMapEditor(QMap<QString, QString> &map, QWidget *parent)
+KWMapEditor::KWMapEditor(QWidget *parent)
+    : QTableWidget(0, 3, parent)
+{
+    _map = new QMap<QString, QString>();
+    setItemDelegate(new KWMapEditorDelegate(this));
+    _ac = new KActionCollection(this);
+    _copyAct = KStandardAction::copy(this, SLOT(copy()), _ac);
+    connect(this, &KWMapEditor::itemChanged, this, &KWMapEditor::dirty);
+    connect(this, &KWMapEditor::customContextMenuRequested, this, &KWMapEditor::contextMenu);
+    setSelectionMode(NoSelection);
+    setHorizontalHeaderLabels(QStringList() << QString() << i18n("Key") << i18n("Value"));
+    setContextMenuPolicy(Qt::CustomContextMenu);
+    reload();
+}
+
+KWMapEditor::KWMapEditor(QMap<QString, QString> *map, QWidget *parent)
     : QTableWidget(0, 3, parent), _map(map)
 {
     setItemDelegate(new KWMapEditorDelegate(this));
@@ -144,16 +159,18 @@ KWMapEditor::KWMapEditor(QMap<QString, QString> &map, QWidget *parent)
     reload();
 }
 
+QMap<QString, QString> *KWMapEditor::currentMap() { return _map; }
+
 void KWMapEditor::reload()
 {
     int row = 0;
 
-    while ((row = rowCount()) > _map.count()) {
+    while ((row = rowCount()) > _map->count()) {
         removeRow(row - 1);
     }
 
-    if ((row = rowCount()) < _map.count()) {
-        setRowCount(_map.count());
+    if ((row = rowCount()) < _map->count()) {
+        setRowCount(_map->count());
         for (int x = row; x < rowCount(); ++x) {
             QToolButton *b = new QToolButton(this);
             b->setIcon(QIcon::fromTheme(QStringLiteral("edit-delete")));
@@ -169,7 +186,7 @@ void KWMapEditor::reload()
     }
 
     row = 0;
-    for (QMap<QString, QString>::Iterator it = _map.begin(), end = _map.end(); it != end; ++it) {
+    for (QMap<QString, QString>::Iterator it = _map->begin(), end = _map->end(); it != end; ++it) {
         item(row, 1)->setText(it.key());
         item(row, 2)->setText(it.value());
         row++;
@@ -195,10 +212,10 @@ void KWMapEditor::erase()
 
 void KWMapEditor::saveMap()
 {
-    _map.clear();
+    _map->clear();
 
     for (int i = 0; i < rowCount(); i++) {
-        _map[item(i, 1)->text()] = item(i, 2)->text();
+        (*_map)[item(i, 1)->text()] = item(i, 2)->text();
     }
 }
 

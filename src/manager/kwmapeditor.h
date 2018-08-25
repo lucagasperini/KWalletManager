@@ -31,8 +31,11 @@ class KWMapEditor : public QTableWidget
     Q_OBJECT
 
 public:
-    explicit KWMapEditor(QMap<QString, QString> &map, QWidget *parent = nullptr);
+    explicit KWMapEditor(QWidget *parent = nullptr);
+    explicit KWMapEditor(QMap<QString, QString> *map, QWidget *parent = nullptr);
     virtual ~KWMapEditor();
+
+    QMap<QString, QString> *currentMap();
 
 public slots:
     void reload();
@@ -49,7 +52,7 @@ signals:
     void dirty();
 
 private:
-    QMap<QString, QString> &_map;
+    QMap<QString, QString> *_map;
     int _contextRow;
     KActionCollection *_ac;
     QAction *_copyAct;

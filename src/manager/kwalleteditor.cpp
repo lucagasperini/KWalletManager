@@ -102,12 +102,7 @@ KWalletEditor::KWalletEditor(QWidget *parent, const QString &name)
 
     _entryStack->setEnabled(true);
 
-    box = new QVBoxLayout(_entryStack->widget(2));
-    box->setMargin(0);
-    _showMap = new QCheckBox(i18n("&Show values"), _entryStack->widget(2));
-    _mapEditor = new KWMapEditor(_currentMap, _entryStack->widget(2));
-    box->addWidget(_showMap);
-    box->addWidget(_mapEditor);
+    _currentMap = _mapEditor->currentMap();
 
     // load splitter size
     KConfigGroup cg(KSharedConfig::openConfig(), "WalletEditor");
@@ -119,7 +114,7 @@ KWalletEditor::KWalletEditor(QWidget *parent, const QString &name)
     }
     _splitter->setSizes(splitterSize);
 
-    _showContents = cg.readEntry("AlwaysShowContents", true);
+    _showContent = cg.readEntry("AlwaysShowContents", true);
 
     _searchLine->setFocus();
 
@@ -133,15 +128,12 @@ KWalletEditor::KWalletEditor(QWidget *parent, const QString &name)
     connect(_undoChanges, &QPushButton::clicked, this, &KWalletEditor::restoreEntry);
     connect(_saveChanges, &QPushButton::clicked, this, &KWalletEditor::saveEntry);
 
-    connect(_showPassword, &QCheckBox::toggled, this, &KWalletEditor::showPasswordValue);
-    connect(_showMap, &QCheckBox::toggled, this, &KWalletEditor::showMapEditorValue);
-    connect(_showBinary, &QCheckBox::toggled, this, &KWalletEditor::showBinaryValue);
+    connect(_showCheckBox, &QCheckBox::toggled, this, &KWalletEditor::showContent);
+    connect(_showCheckBox, &QCheckBox::toggled, this, &KWalletEditor::showContent);
+    connect(_showCheckBox, &QCheckBox::toggled, this, &KWalletEditor::showContent);
 
-    _showBinary->setChecked(_showContents);
-    _showPassword->setChecked(_showContents);
-    _showMap->setChecked(_showContents);
-
-    _entryStack->setCurrentIndex(0);
+    _entryStack->setCurrentIndex(0); /*QUESTION: change _showCheckBox and showContent when change current index?*/
+    showContent(_showContent);
 //    createActions();
     // TODO: remove kwalleteditor.rc file
 }
@@ -417,7 +409,7 @@ void KWalletEditor::saveEntry()
             rc = _w->writePassword(item->text(0), _passwordValue->toPlainText());
         } else if (item->entryType() == KWallet::Wallet::Map) {
             _mapEditor->saveMap();
-            rc = _w->writeMap(item->text(0), _currentMap);
+            rc = _w->writeMap(item->text(0), *_currentMap);
         } else {
             return; //QUESTION: and save the Binary Data?
         }
@@ -493,9 +485,9 @@ void KWalletEditor::entrySelectionChanged(QTreeWidgetItem *item)
 
             if (ei->entryType() == KWallet::Wallet::Password) {
                 QString pass;
+                _entryStack->setCurrentIndex(1);
+                showContent(_showContent);
                 if (_w->readPassword(item->text(0), pass) == 0) {
-                    _entryStack->setCurrentIndex(1);
-                    _showPassword->setChecked(_showContents);
                     _entryName->setText(i18n("Password: %1",
                                              item->text(0)));
                     _passwordValue->setText(pass);
@@ -508,9 +500,8 @@ void KWalletEditor::entrySelectionChanged(QTreeWidgetItem *item)
                 _contextMenu->addAction(_copyPassAction);
             } else if (ei->entryType() == KWallet::Wallet::Map) {
                 _entryStack->setCurrentIndex(2);
-                _mapEditor->hideColumn(2); /* WARNING: prevent bug */
-                _showMap->setChecked(_showContents);
-                if (_w->readMap(item->text(0), _currentMap) == 0) {
+                showContent(_showContent);
+                if (_w->readMap(item->text(0), *_currentMap) == 0) {
                     _mapEditor->reload();
                     _entryName->setText(i18n("Name-Value Map: %1", item->text(0)));
                     _saveChanges->setEnabled(false);
@@ -519,7 +510,7 @@ void KWalletEditor::entrySelectionChanged(QTreeWidgetItem *item)
                 }
             } else if (ei->entryType() == KWallet::Wallet::Stream) {
                 _entryStack->setCurrentIndex(3);
-                _showBinary->setChecked(_showContents);
+                showContent(_showContent);
                 QByteArray ba;
                 if (_w->readEntry(item->text(0), ba) == 0) {
                     _entryName->setText(i18n("Binary Data: %1",
@@ -546,6 +537,7 @@ void KWalletEditor::entrySelectionChanged(QTreeWidgetItem *item)
             _newEntryAction->setEnabled(true);
             _entryName->clear();
             _entryStack->setCurrentIndex(0);
+            showContent(0);
             break;
 
         default:
@@ -840,19 +832,29 @@ void KWalletEditor::walletOpened(bool success)
 }
 
 
-void KWalletEditor::showPasswordValue(bool v)
+void KWalletEditor::showContent(bool v) /* WARNING: isn't the best solution, but it works */
 {
-    v ? _passwordValue->show() : _passwordValue->hide();
-}
-
-void KWalletEditor::showMapEditorValue(bool v)
-{
-    v ? _mapEditor->showColumn(2) : _mapEditor->hideColumn(2);
-}
-
-void KWalletEditor::showBinaryValue(bool v)
-{
-    v ? _binaryView->show() : _binaryView->hide();
+    _showCheckBox->setChecked(v);
+    switch(_entryStack->currentIndex())
+    {
+    case 0:
+        _showCheckBox->hide();
+        break;
+    case 1:
+        _showCheckBox->show();
+        v ? _passwordValue->show() : _passwordValue->hide();
+        break;
+    case 2:
+        _showCheckBox->show();
+        v ? _mapEditor->showColumn(2) : _mapEditor->hideColumn(2);
+        break;
+    case 3:
+        _showCheckBox->show();
+        v ? _binaryView->show() : _binaryView->hide();
+        break;
+    default:
+        break;
+    }
 }
 
 enum MergePlan { Prompt = 0, Always = 1, Never = 2, Yes = 3, No = 4 };
