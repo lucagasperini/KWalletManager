@@ -62,7 +62,7 @@ KWalletManager::KWalletManager(QWidget *parent, const QString &name, Qt::WindowF
 }
 
 void KWalletManager::beginConfiguration() {
-    KConfig cfg(QStringLiteral("kwalletrc"));    // not sure why this setting isn't in kwalletmanagerrc...
+    KConfig cfg(QStringLiteral("kwalletmanager5rc"));
     KConfigGroup walletConfigGroup(&cfg, "Wallet");
     if (walletConfigGroup.readEntry("Enabled", true)){
         QTimer::singleShot(0, this, &KWalletManager::configUI);
@@ -80,7 +80,7 @@ void KWalletManager::beginConfiguration() {
 
 void KWalletManager::configUI() {
     QDBusConnection::sessionBus().registerObject(QStringLiteral("/KWalletManager"), this, QDBusConnection::ExportScriptableSlots);
-    KConfig cfg(QStringLiteral("kwalletrc"));    // not sure why this setting isn't in kwalletmanagerrc...
+    KConfig cfg(QStringLiteral("kwalletmanager5rc"));
     KConfigGroup walletConfigGroup(&cfg, "Wallet");
     if (walletConfigGroup.readEntry("Launch Manager", false)) {
         _tray = new KStatusNotifierItem(this);
@@ -289,7 +289,7 @@ void KWalletManager::allWalletsClosed()
 
 void KWalletManager::possiblyQuit()
 {
-    KConfig _cfg(QStringLiteral("kwalletrc"));
+    KConfig _cfg(QStringLiteral("kwalletmanager5rc"));
     KConfigGroup cfg(&_cfg, "Wallet");
     if (_windows.isEmpty() &&
             !isVisible() &&

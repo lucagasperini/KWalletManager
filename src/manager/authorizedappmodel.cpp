@@ -25,7 +25,7 @@
 
 AuthorizedAppModel::AuthorizedAppModel(KWallet::Wallet *wallet):
     QStandardItemModel(),
-    _cfg(KSharedConfig::openConfig(QStringLiteral("kwalletrc"), KConfig::NoGlobals)),
+    _cfg(KSharedConfig::openConfig(QStringLiteral("kwalletmanager5rc"), KConfig::NoGlobals)),
     _wallet(wallet)
 {
     // TODO: handle "Auto Deny" applications

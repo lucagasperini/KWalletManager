@@ -15,6 +15,3 @@ GPG
 
 Graphics:
 - Review KWalletEditor form
-
-Config:
-- Move configuration file from kwalletrc to kwalletmanager5rc

@@ -47,7 +47,7 @@ K_PLUGIN_FACTORY(KWalletFactory, registerPlugin<KWalletConfig>();)
 
 KWalletConfig::KWalletConfig(QWidget *parent, const QVariantList &args)
     : KCModule(parent, args),
-      _cfg(KSharedConfig::openConfig(QStringLiteral("kwalletrc"), KConfig::NoGlobals))
+      _cfg(KSharedConfig::openConfig(QStringLiteral("kwalletmanager5rc"), KConfig::NoGlobals))
 {
     KAboutData *about = new KAboutData(QStringLiteral("kcmkwallet5"),
                                        i18n("KDE Wallet Control Module"),
@@ -227,16 +227,16 @@ void KWalletConfig::load()
     const QStringList keys = aa.entryMap().keys();
     for (QStringList::const_iterator i = keys.begin(); i != keys.end(); ++i) {
         QString walletName = *i;
-        // perform cleanup in the kwalletrc file, by removing entries that correspond to non-existent
+        // perform cleanup in the kwalletmanager5rc file, by removing entries that correspond to non-existent
         // (previously deleted, for example) wallets
         QString path = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation);
         path.append(QStringLiteral("/kwalletd/%1.kwl").arg(walletName));
         if (!QFile::exists(path)) {
             // if the wallet no longer exists, delete the entries from the configuration file and skip to next entry
-            KConfigGroup cfgAllow = KSharedConfig::openConfig(QStringLiteral("kwalletrc"))->group("Auto Allow");
+            KConfigGroup cfgAllow = KSharedConfig::openConfig(QStringLiteral("kwalletmanager5rc"))->group("Auto Allow");
             cfgAllow.deleteEntry(walletName);
 
-            KConfigGroup cfgDeny = KSharedConfig::openConfig(QStringLiteral("kwalletrc"))->group("Auto Deny");
+            KConfigGroup cfgDeny = KSharedConfig::openConfig(QStringLiteral("kwalletmanager5rc"))->group("Auto Deny");
             cfgDeny.deleteEntry(walletName);
             continue;
         }

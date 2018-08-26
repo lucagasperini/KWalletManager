@@ -1,19 +1,25 @@
 diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /home/luca/Progetti/kwalletmanager/kwalletmanager/TODO /home/luca/Progetti/kwalletmanager/git/TODO
 --- /home/luca/Progetti/kwalletmanager/kwalletmanager/TODO	2018-08-25 08:53:08.274809347 +0200
-+++ /home/luca/Progetti/kwalletmanager/git/TODO	2018-08-24 17:34:21.403994832 +0200
-@@ -12,3 +12,9 @@
++++ /home/luca/Progetti/kwalletmanager/git/TODO	2018-08-26 07:16:01.415884987 +0200
+@@ -12,3 +12,6 @@
  
  GPG
  - Provide a backend conversion tool to help switching from blowfish to GPG or viceversa
 +
 +Graphics:
 +- Review KWalletEditor form
-+
-+Config:
-+- Move configuration file from kwalletrc to kwalletmanager5rc
 diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/konfigurator/konfigurator.cpp /home/luca/Progetti/kwalletmanager/git/src/konfigurator/konfigurator.cpp
 --- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/konfigurator/konfigurator.cpp	2018-08-25 08:53:08.274809347 +0200
-+++ /home/luca/Progetti/kwalletmanager/git/src/konfigurator/konfigurator.cpp	2018-08-24 17:41:39.134358188 +0200
++++ /home/luca/Progetti/kwalletmanager/git/src/konfigurator/konfigurator.cpp	2018-08-26 07:07:53.619963974 +0200
+@@ -47,7 +47,7 @@
+ 
+ KWalletConfig::KWalletConfig(QWidget *parent, const QVariantList &args)
+     : KCModule(parent, args),
+-      _cfg(KSharedConfig::openConfig(QStringLiteral("kwalletrc"), KConfig::NoGlobals))
++      _cfg(KSharedConfig::openConfig(QStringLiteral("kwalletmanager5rc"), KConfig::NoGlobals))
+ {
+     KAboutData *about = new KAboutData(QStringLiteral("kcmkwallet5"),
+                                        i18n("KDE Wallet Control Module"),
 @@ -68,6 +68,7 @@
  
      connect(_wcw->_enabled, &QCheckBox::clicked, this, &KWalletConfig::configChanged);
@@ -22,7 +28,7 @@ diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /
      connect(_wcw->_autocloseManager, &QCheckBox::clicked, this, &KWalletConfig::configChanged);
      connect(_wcw->_autoclose, &QCheckBox::clicked, this, &KWalletConfig::configChanged);
      connect(_wcw->_closeIdle, &QCheckBox::clicked, this, &KWalletConfig::configChanged);
-@@ -218,6 +219,8 @@
+@@ -218,22 +219,24 @@
          _wcw->_localWalletSelected->setChecked(false);
      }
      _wcw->_accessList->clear();
@@ -31,6 +37,25 @@ diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /
      KConfigGroup ad(_cfg, "Auto Deny");
      KConfigGroup aa(_cfg, "Auto Allow");
      QStringList denykeys = ad.entryMap().keys();
+     const QStringList keys = aa.entryMap().keys();
+     for (QStringList::const_iterator i = keys.begin(); i != keys.end(); ++i) {
+         QString walletName = *i;
+-        // perform cleanup in the kwalletrc file, by removing entries that correspond to non-existent
++        // perform cleanup in the kwalletmanager5rc file, by removing entries that correspond to non-existent
+         // (previously deleted, for example) wallets
+         QString path = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation);
+         path.append(QStringLiteral("/kwalletd/%1.kwl").arg(walletName));
+         if (!QFile::exists(path)) {
+             // if the wallet no longer exists, delete the entries from the configuration file and skip to next entry
+-            KConfigGroup cfgAllow = KSharedConfig::openConfig(QStringLiteral("kwalletrc"))->group("Auto Allow");
++            KConfigGroup cfgAllow = KSharedConfig::openConfig(QStringLiteral("kwalletmanager5rc"))->group("Auto Allow");
+             cfgAllow.deleteEntry(walletName);
+ 
+-            KConfigGroup cfgDeny = KSharedConfig::openConfig(QStringLiteral("kwalletrc"))->group("Auto Deny");
++            KConfigGroup cfgDeny = KSharedConfig::openConfig(QStringLiteral("kwalletmanager5rc"))->group("Auto Deny");
+             cfgDeny.deleteEntry(walletName);
+             continue;
+         }
 @@ -307,6 +310,8 @@
      }
  
@@ -159,6 +184,18 @@ diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /
  
  public:
      KWallet::Wallet *_wallet;
+diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/authorizedappmodel.cpp /home/luca/Progetti/kwalletmanager/git/src/manager/authorizedappmodel.cpp
+--- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/authorizedappmodel.cpp	2018-08-25 08:53:08.274809347 +0200
++++ /home/luca/Progetti/kwalletmanager/git/src/manager/authorizedappmodel.cpp	2018-08-26 07:07:51.926656942 +0200
+@@ -25,7 +25,7 @@
+ 
+ AuthorizedAppModel::AuthorizedAppModel(KWallet::Wallet *wallet):
+     QStandardItemModel(),
+-    _cfg(KSharedConfig::openConfig(QStringLiteral("kwalletrc"), KConfig::NoGlobals)),
++    _cfg(KSharedConfig::openConfig(QStringLiteral("kwalletmanager5rc"), KConfig::NoGlobals)),
+     _wallet(wallet)
+ {
+     // TODO: handle "Auto Deny" applications
 diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/kwalleteditor.cpp /home/luca/Progetti/kwalletmanager/git/src/manager/kwalleteditor.cpp
 --- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/kwalleteditor.cpp	2018-08-25 08:53:08.278142632 +0200
 +++ /home/luca/Progetti/kwalletmanager/git/src/manager/kwalleteditor.cpp	2018-08-25 08:39:55.343010882 +0200
@@ -759,7 +796,7 @@ diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /
  
 diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/kwalletmanager.cpp /home/luca/Progetti/kwalletmanager/git/src/manager/kwalletmanager.cpp
 --- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/kwalletmanager.cpp	2018-08-25 08:53:08.278142632 +0200
-+++ /home/luca/Progetti/kwalletmanager/git/src/manager/kwalletmanager.cpp	2018-08-23 08:20:58.568793087 +0200
++++ /home/luca/Progetti/kwalletmanager/git/src/manager/kwalletmanager.cpp	2018-08-26 07:14:16.977388117 +0200
 @@ -41,7 +41,6 @@
  #include <kconfiggroup.h>
  #include <KTar>
@@ -768,6 +805,33 @@ diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /
  #include <QRegExp>
  #include <QRegExpValidator>
  #include <QTimer>
+@@ -63,7 +62,7 @@
+ }
+ 
+ void KWalletManager::beginConfiguration() {
+-    KConfig cfg(QStringLiteral("kwalletrc"));    // not sure why this setting isn't in kwalletmanagerrc...
++    KConfig cfg(QStringLiteral("kwalletmanager5rc"));
+     KConfigGroup walletConfigGroup(&cfg, "Wallet");
+     if (walletConfigGroup.readEntry("Enabled", true)){
+         QTimer::singleShot(0, this, &KWalletManager::configUI);
+@@ -81,7 +80,7 @@
+ 
+ void KWalletManager::configUI() {
+     QDBusConnection::sessionBus().registerObject(QStringLiteral("/KWalletManager"), this, QDBusConnection::ExportScriptableSlots);
+-    KConfig cfg(QStringLiteral("kwalletrc"));    // not sure why this setting isn't in kwalletmanagerrc...
++    KConfig cfg(QStringLiteral("kwalletmanager5rc"));
+     KConfigGroup walletConfigGroup(&cfg, "Wallet");
+     if (walletConfigGroup.readEntry("Launch Manager", false)) {
+         _tray = new KStatusNotifierItem(this);
+@@ -290,7 +289,7 @@
+ 
+ void KWalletManager::possiblyQuit()
+ {
+-    KConfig _cfg(QStringLiteral("kwalletrc"));
++    KConfig _cfg(QStringLiteral("kwalletmanager5rc"));
+     KConfigGroup cfg(&_cfg, "Wallet");
+     if (_windows.isEmpty() &&
+             !isVisible() &&
 diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/kwalletmanager.h /home/luca/Progetti/kwalletmanager/git/src/manager/kwalletmanager.h
 --- /home/luca/Progetti/kwalletmanager/kwalletmanager/src/manager/kwalletmanager.h	2018-08-25 08:53:08.278142632 +0200
 +++ /home/luca/Progetti/kwalletmanager/git/src/manager/kwalletmanager.h	2018-08-23 08:20:58.578792925 +0200
