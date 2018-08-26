@@ -91,7 +91,6 @@ public:
     QString name() const;
     void refresh();
     KWalletContainerItem *getContainer(KWallet::Wallet::EntryType type);
-    QPixmap getFolderIcon(KIconLoader::Group group);
     bool contains(const QString &itemKey);
     QTreeWidgetItem *getItem(const QString &itemKey);
     void refreshItemsCount();

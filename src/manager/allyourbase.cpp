@@ -45,20 +45,7 @@ KWalletFolderItem::KWalletFolderItem(KWallet::Wallet *w, QTreeWidget *parent, co
 {
     setText(0, QStringLiteral("%1 (%2)").arg(_name).arg(_entries));
     setFlags(Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | Qt::ItemIsEnabled);
-    setIcon(0, getFolderIcon(KIconLoader::Small));
-}
-
-QPixmap KWalletFolderItem::getFolderIcon(KIconLoader::Group group)
-{
-    QPixmap pix = QIcon::fromTheme(_name).pixmap(IconSize(group), IconSize(group));
-
-    if (pix.isNull()) {
-        pix = QIcon::fromTheme(_name.toLower()).pixmap(IconSize(group), IconSize(group));
-        if (pix.isNull())
-            pix = QIcon::fromTheme(QStringLiteral("folder-red")).pixmap(IconSize(group), IconSize(group));
-    }
-
-    return pix;
+    setIcon(0, QIcon::fromTheme(QStringLiteral("folder"))); /* QUESTION: add selection of icon for object? */
 }
 
 void KWalletFolderItem::refresh()

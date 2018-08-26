@@ -555,7 +555,7 @@ void KWalletEditor::entrySelectionChanged(QTreeWidgetItem *item)
     if (fi) {
         _currentFolder = fi->name();
         _entryTitle->setText(QStringLiteral("<font size=\"+1\">%1</font>").arg(fi->text(0)));
-        _iconTitle->setPixmap(fi->getFolderIcon(KIconLoader::Toolbar));
+        _iconTitle->setPixmap(QIcon::fromTheme(QStringLiteral("folder")).pixmap(QSize(20,20)));
     }
 
     _displayedItem = item;
