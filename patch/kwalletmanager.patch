@@ -1,3 +1,15 @@
+diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /home/luca/Progetti/kwalletmanager/kwalletmanager/CMakeLists.txt /home/luca/Progetti/kwalletmanager/git/CMakeLists.txt
+--- /home/luca/Progetti/kwalletmanager/kwalletmanager/CMakeLists.txt	2018-08-25 08:53:08.274809347 +0200
++++ /home/luca/Progetti/kwalletmanager/git/CMakeLists.txt	2018-08-29 11:41:02.735914285 +0200
+@@ -8,7 +8,7 @@
+ project(kwalletmanager5 VERSION ${KDE_APPLICATIONS_VERSION})
+ 
+ set(QT_MIN_VERSION "5.9.0")
+-set(KF5_VERSION "5.46.0")
++set(KF5_VERSION "5.44.0")
+ 
+ find_package(ECM ${KF5_VERSION} REQUIRED NO_MODULE)
+ 
 diff -U 3 -H -d -r -N -x CMakeLists.txt.user -x .gitignore -x patch -x .git -- /home/luca/Progetti/kwalletmanager/kwalletmanager/TODO /home/luca/Progetti/kwalletmanager/git/TODO
 --- /home/luca/Progetti/kwalletmanager/kwalletmanager/TODO	2018-08-25 08:53:08.274809347 +0200
 +++ /home/luca/Progetti/kwalletmanager/git/TODO	2018-08-26 07:16:01.415884987 +0200
