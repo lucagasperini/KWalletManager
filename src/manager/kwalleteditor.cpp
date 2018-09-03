@@ -796,7 +796,7 @@ void KWalletEditor::deleteEntry()
     if (_w && item) {
         int rc = KMessageBox::warningContinueCancel(this, i18n("Are you sure you wish to delete the item '%1'?", item->text(0)), QString(), KStandardGuiItem::del());
         if (rc == KMessageBox::Continue) {
-            KWalletFolderItem *fi = dynamic_cast<KWalletFolderItem *>(item->parent()->parent());
+            KWalletFolderItem *fi = dynamic_cast<KWalletFolderItem *>(item->parent());
             if (!fi) {
                 KMessageBox::error(this, i18n("An unexpected error occurred trying to delete the entry"));
                 return;
