@@ -45,26 +45,83 @@ public:
     explicit KWalletEditor(QWidget *parent, const QString &name = QString());
     virtual ~KWalletEditor();
 
+    /**
+     * @brief setWallet take KWallet::Wallet as input in order to using this @class
+     * @param wallet pointer of KWallet::Wallet, it must be different of nullptr
+     * @param isPath an boolean value, it will be stored in @private _nonLocal
+     */
     void setWallet(KWallet::Wallet *wallet, bool isPath = false);
+    /**
+     * @brief isOpen check if wallet is open.
+     * @return true if @private _w is different of nullptr, false it is not set.
+     */
     bool isOpen() const;
 
+    /**
+     * @brief hasUnsavedChanges check if there are unsaved changes in the wallet
+     * @return value of @private _hasUnsavedChanges
+     */
     bool hasUnsavedChanges() const;
+    /**
+     * @brief setNewWallet @note not sure what is it.
+     * @param newWallet set value of @private _newWallet
+     */
     void setNewWallet(bool newWallet);
 
 protected:
+    /**
+     * @brief hideEvent override to disconnect and disable actions
+     */
     void hideEvent(QHideEvent *) override;
+    /**
+     * @brief showEvent override to connect and enable actions
+     */
     void showEvent(QShowEvent *) override;
 
 public slots:
+    /**
+     * @brief walletClosed set @private _w to nullptr and disable wallet action
+     */
     void walletClosed();
+    /**
+     * @brief createFolder start the process to create a new folder
+     */
     void createFolder();
+    /**
+     * @brief deleteFolder start the process to delete a existing folder
+     */
     void deleteFolder();
 
 private slots:
+    /**
+     * @brief updateFolderList trash existing folder in @gui to create new ones
+     * @param checkEntries
+     * @note not sure how it works
+     */
     void updateFolderList(bool checkEntries = false);
+    /**
+     * @brief entrySelectionChanged manage the selection of an entry
+     * @param item
+     * @note not sure how it works, cannot be modular?
+     */
     void entrySelectionChanged(QTreeWidgetItem *item);
-    void listItemChanged(QTreeWidgetItem *, int column);
+    /**
+     * @brief listItemChanged manage the form when entry is changed
+     * @param item the entry pointer
+     * @param column
+     * @note check for improvement
+     */
+    void listItemChanged(QTreeWidgetItem *item, int column);
+    /**
+     * @brief listContextMenuRequested popup the context menu
+     * @param pos is the position on widget
+     */
     void listContextMenuRequested(const QPoint &pos);
+    /**
+     * @brief updateEntries update entry list in @gui
+     * @param folder is the folder on the wallet selected
+     * @note check code under the comment
+     */
     void updateEntries(const QString &folder);
 
     void newEntry();

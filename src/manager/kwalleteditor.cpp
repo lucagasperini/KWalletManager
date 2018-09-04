@@ -160,21 +160,43 @@ KWalletEditor::~KWalletEditor()
 void KWalletEditor::setWallet(KWallet::Wallet *wallet, bool isPath)
 {
     Q_ASSERT(wallet != nullptr);
+
+    /**
+      * @todo Why @public _walletName is stored if @private *_w has @public walletName()?
+      */
     _walletName = wallet->walletName();
+    /**
+      * @note What @private _nonLocal do?
+      */
     _nonLocal = isPath;
 
     _w = wallet;
+    /**
+      * @note @gui _entryList is the QTreeWidget of the form.
+      * Why @param is @private *_w?
+      */
     _entryList->setWallet(_w);
     connect(_w, &KWallet::Wallet::walletOpened, this, &KWalletEditor::walletOpened);
     connect(_w, &KWallet::Wallet::walletClosed, this, &KWalletEditor::walletClosed);
     connect(_w, &KWallet::Wallet::folderUpdated, this, &KWalletEditor::updateEntries);
+    /**
+      * @note Check this @public updateFolderList();
+      * Why SIGNAL/SLOT from?
+      */
     connect(_w, SIGNAL(folderListUpdated()), this, SLOT(updateFolderList()));
     updateFolderList();
 
+    /**
+      * @note Check those 3 signals
+      */
     emit enableFolderActions(true);
     emit enableWalletActions(true);
     emit enableContextFolderActions(true);
 
+    /**
+      * @note Why using setFocus()?
+      * @link https://doc.qt.io/archives/qt-4.8/qwidget.html#setFocus
+      */
     setFocus();
     _searchLine->setFocus();
 }
@@ -290,7 +312,14 @@ void KWalletEditor::disconnectActions()
 
 void KWalletEditor::walletClosed()
 {
+    /**
+      * @note Why not delete @private _w pointer?
+      */
     _w = nullptr;
+    /**
+     * @brief setEnabled disable this widget and all children
+     * @note Why not disable as @public hideEvent()?
+     */
     setEnabled(false);
     emit enableWalletActions(false);
     emit enableFolderActions(false);
@@ -298,9 +327,18 @@ void KWalletEditor::walletClosed()
 
 void KWalletEditor::updateFolderList(bool checkEntries)
 {
+    /**
+     * @brief fl store folder list from wallet
+     */
     const QStringList fl = _w->folderList();
+    /**
+     * @brief trash store QTreeWidgetItem of trash
+     */
     QStack<QTreeWidgetItem *> trash;
 
+    /**
+      * @note why autoincrement ++i instead i++?
+      */
     for (int i = 0; i < _entryList->topLevelItemCount(); ++i) {
         KWalletFolderItem *fi = dynamic_cast<KWalletFolderItem *>(_entryList->topLevelItem(i));
         if (!fi) {
@@ -310,18 +348,29 @@ void KWalletEditor::updateFolderList(bool checkEntries)
             trash.push(fi);
         }
     }
-
+    /**
+     *  @note There is another way to update folder list without trash all?
+     */
     qDeleteAll(trash);
     trash.clear();
 
+    /**
+      * @note why autoincrement ++i instead i++?
+      */
     for (QStringList::const_iterator i = fl.begin(); i != fl.end(); ++i) {
         if (_entryList->existsFolder(*i)) {
+            /**
+              * @note Check checkEntries and updateEntries
+              */
             if (checkEntries) {
                 updateEntries(*i);
             }
             continue;
         }
 
+        /**
+          * @note seems want create new entries
+          */
         _w->setFolder(*i);
         const QStringList entries = _w->entryList();
         KWalletFolderItem *item = new KWalletFolderItem(_w, _entryList, *i, entries.count());
@@ -342,6 +391,9 @@ void KWalletEditor::updateFolderList(bool checkEntries)
 
 void KWalletEditor::deleteFolder()
 {
+    /**
+      * @note There is a way to remove this concatenated conditions?
+      */
     if (_w) {
         QTreeWidgetItem *i = _entryList->currentItem();
         if (i) {
@@ -369,7 +421,14 @@ void KWalletEditor::deleteFolder()
 void KWalletEditor::createFolder()
 {
     if (_w) {
+        /**
+         * @brief n is the name of the new folder
+         */
         QString n;
+        /**
+         * @brief ok is the variable of QInputDialog::getText about button pressed in this widget
+         * @value true if user pressed OK, false if user pressed Cancel
+         */
         bool ok;
 
         do {
